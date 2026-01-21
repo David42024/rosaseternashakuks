@@ -11,41 +11,59 @@ defineProps({
 
 <template>
     <PublicLayout>
-        <section class="relative min-h-[600px] flex items-center bg-gray-900 overflow-hidden">
-            <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-rose-900 via-gray-900 to-black opacity-90"></div>
+        <section className="relative min-h-[700px] flex items-center overflow-hidden bg-[#8b4347]">
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-[#fdf2f2] via-[#d4a3a7] to-[#8b4347] opacity-100"></div>
+            <div class="absolute top-[-10%] right-[-10%] w-[600px] h-[600px] bg-white/40 rounded-full blur-[120px]"></div>
+            <div class="absolute bottom-[-10%] left-[10%] w-[400px] h-[400px] bg-[#fdf2f2]/30 rounded-full blur-[100px]"></div>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full py-12">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-16">
             
-            <div class="absolute top-0 right-0 w-96 h-96 bg-rose-600/20 rounded-full blur-[100px]"></div>
-            <div class="absolute bottom-0 left-0 w-96 h-96 bg-purple-900/20 rounded-full blur-[100px]"></div>
+            <div className="w-full md:w-1/2 text-center md:text-left order-2 md:order-1">
+                <span className="inline-block py-1.5 px-4 rounded-full bg-[#fdf2f2]/10 border border-[#fdf2f2]/20 text-[#fdf2f2] text-sm font-medium mb-8 backdrop-blur-md">
+                    ✨ Arte Floral Artesanal
+                </span>
 
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full text-center md:text-left">
-                <div class="md:w-2/3">
-                    <span class="inline-block py-1 px-3 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-300 text-sm font-medium mb-6 backdrop-blur-sm">
-                        ✨ Arte Floral Artesanal
-                    </span>
-                    <h1 class="text-5xl md:text-7xl font-serif font-bold mb-6 text-white leading-tight drop-shadow-sm">
-                        Regala Momentos <br/>
-                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-rose-200">Eternos</span>
-                    </h1>
-                    <p class="text-lg md:text-xl mb-10 text-gray-300 font-light leading-relaxed max-w-2xl drop-shadow-sm">
-                        Descubre nuestros arreglos exclusivos con rosas preservadas y luces LED. El regalo perfecto que perdura en el tiempo y en el corazón.
-                    </p>
-                    <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-                        <Link 
-                            href="/catalogo" 
-                            class="bg-white text-gray-900 px-8 py-4 rounded-full font-bold hover:bg-rose-50 transition shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)] transform hover:-translate-y-1"
-                        >
-                            Ver Colección
-                        </Link>
-                        <Link 
-                            href="/contacto" 
-                            class="border border-white/30 text-white px-8 py-4 rounded-full font-semibold hover:bg-white/10 transition backdrop-blur-sm"
-                        >
-                            Personalizar Pedido
-                        </Link>
-                    </div>
+                <h1 className="text-6xl md:text-8xl font-serif font-bold mb-8 text-white leading-[1.1] drop-shadow-2xl">
+                    Regala Momentos <br/>
+                    <span className="text-[#fdf2f2] italic opacity-90">Eternos</span>
+                </h1>
+
+                <p className="text-lg md:text-xl mb-12 text-[#fdf2f2]/80 font-light leading-relaxed max-w-xl mx-auto md:mx-0">
+                    Descubre nuestros arreglos exclusivos con rosas preservadas y luces LED. Un detalle que captura la belleza para siempre.
+                </p>
+
+                <div className="flex flex-col sm:flex-row gap-5 justify-center md:justify-start">
+                    <Link 
+                        href="/catalogo" 
+                        className="bg-[#fdf2f2] text-[#632a2d] px-10 py-4 rounded-full font-bold hover:shadow-[0_0_30px_rgba(253,242,242,0.4)] transition-all duration-300 transform hover:-translate-y-1 text-center"
+                    >
+                        Ver Colección
+                    </Link>
+                    
+                    <Link 
+                        href="/contacto" 
+                        className="border-2 border-[#fdf2f2]/30 text-[#fdf2f2] px-10 py-4 rounded-full font-semibold hover:bg-[#fdf2f2]/10 transition-all duration-300 text-center backdrop-blur-sm"
+                    >
+                        Personalizar
+                    </Link>
                 </div>
             </div>
-        </section>
+
+            <div className="w-full md:w-1/2 flex justify-center items-center order-1 md:order-2">
+                <div className="relative">
+                    <div className="absolute inset-0 bg-[#f5d0d3]/30 blur-[80px] rounded-full animate-pulse"></div>
+                    
+                    <img 
+                        src="haku-logo.png" 
+                        alt="Haku Ks" 
+                        className="relative z-10 w-full max-w-[450px] h-auto drop-shadow-[0_20px_50px_rgba(0,0,0,0.3)] hover:scale-105 transition-transform duration-700 ease-in-out"
+                    />
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
 
         <section class="py-24 bg-stone-50">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

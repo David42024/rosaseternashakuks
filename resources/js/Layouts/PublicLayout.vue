@@ -11,16 +11,21 @@ defineProps({
         <nav class="fixed w-full top-0 z-50 transition-all duration-300 bg-white/80 backdrop-blur-md border-b border-rose-100/50 shadow-sm">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center h-20">
-                    <div class="flex items-center">
-                        <Link href="/" class="flex items-center gap-3 group">
-                            <div class="relative w-11 h-11 bg-gradient-to-br from-rose-600 to-rose-800 rounded-full flex items-center justify-center shadow-lg shadow-rose-500/30 group-hover:scale-105 transition duration-300">
-                                <span class="text-xl">🌹</span>
-                            </div>
-                            <span class="text-2xl font-serif font-bold text-gray-900 tracking-tight group-hover:text-rose-700 transition">
+                    <div className="flex items-center">
+                    <Link href="/" className="flex items-center gap-3 group">
+                        <div className="relative w-11 h-11 bg-gradient-to-br from-rose-200 to-rose-400 rounded-full flex items-center justify-center shadow-lg shadow-black/20 border border-white/10 group-hover:scale-110 transition-all duration-300">
+                            <span className="text-xl">🌹</span>
+                            
+                            <div className="absolute inset-0 rounded-full bg-rose-400/20 blur-md group-hover:blur-lg transition-all"></div>
+                        </div>
+                        
+                        <span className="text-2xl font-serif font-bold tracking-tight transition-all duration-300">
+                            <span className="text-rose-400">
                                 Hakuks
                             </span>
-                        </Link>
-                    </div>
+                        </span>
+                    </Link>
+                </div>
 
                     <div class="hidden md:flex items-center gap-10">
                         <Link href="/" class="text-gray-600 hover:text-rose-600 font-medium text-sm tracking-wide transition relative group">
