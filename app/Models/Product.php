@@ -140,4 +140,10 @@ class Product extends Model
             }
         });
     }
+
+    protected $appends = [
+        'primary_image_url',
+        'current_price',
+        'discount_percent',
+    ];
 }

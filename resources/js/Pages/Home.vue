@@ -29,7 +29,7 @@ defineProps({
                 </h1>
 
                 <p className="text-lg md:text-xl mb-12 text-[#fdf2f2]/80 font-light leading-relaxed max-w-xl mx-auto md:mx-0">
-                    Descubre nuestros arreglos exclusivos con rosas preservadas y luces LED. Un detalle que captura la belleza para siempre.
+                    Descubre nuestros arreglos exclusivos con rosas eternas y luces LED. Un detalle que captura la belleza para siempre.
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-5 justify-center md:justify-start">
