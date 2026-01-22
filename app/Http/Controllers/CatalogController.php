@@ -6,21 +6,44 @@ use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Cache;
+
 
 class CatalogController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Product::with(['category', 'images'])->active();
-
-        // Filtro por categoría
-        if ($request->filled('category')) {
-            $query->whereHas('category', function ($q) use ($request) {
-                $q->where('slug', $request->category);
+        if ($request->hasAny(['search', 'category', 'min_price', 'max_price', 'sort'])) {
+            $products = $this->getFilteredProducts($request);
+        } else {
+            // Sin filtros, usar caché
+            $products = Cache::remember('catalog_products_page_' . $request->get('page', 1), 1800, function () {
+                return Product::with(['category', 'images'])
+                    ->active()
+                    ->latest()
+                    ->paginate(12);
             });
         }
 
-        // Filtro por búsqueda
+        $categories = Cache::remember('categories_with_count', 3600, function () {
+            return Category::active()->withCount('products')->get();
+        });
+
+        return Inertia::render('Catalog/Index', [
+            'products' => $products,
+            'categories' => $categories,
+            'filters' => $request->only(['category', 'search', 'min_price', 'max_price', 'sort']),
+        ]);
+    }
+
+    private function getFilteredProducts(Request $request)
+    {
+        $query = Product::with(['category', 'images'])->active();
+
+        if ($request->filled('category')) {
+            $query->whereHas('category', fn($q) => $q->where('slug', $request->category));
+        }
+
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
                 $q->where('name', 'like', '%' . $request->search . '%')
@@ -28,17 +51,15 @@ class CatalogController extends Controller
             });
         }
 
-        // Filtro por precio
         if ($request->filled('min_price')) {
             $query->where('price', '>=', $request->min_price);
         }
+
         if ($request->filled('max_price')) {
             $query->where('price', '<=', $request->max_price);
         }
 
-        // Ordenamiento
-        $sort = $request->get('sort', 'latest');
-        switch ($sort) {
+        switch ($request->get('sort', 'latest')) {
             case 'price_asc':
                 $query->orderBy('price', 'asc');
                 break;
@@ -52,14 +73,7 @@ class CatalogController extends Controller
                 $query->latest();
         }
 
-        $products = $query->paginate(12)->withQueryString();
-        $categories = Category::active()->withCount('products')->get();
-
-        return Inertia::render('Catalog/Index', [
-            'products' => $products,
-            'categories' => $categories,
-            'filters' => $request->only(['category', 'search', 'min_price', 'max_price', 'sort']),
-        ]);
+        return $query->paginate(12)->withQueryString();
     }
 
     public function show(string $slug)
