@@ -40,8 +40,15 @@ class ProductImage extends Model
     // ACCESSORS
     // ==========================================
 
-    public function getUrlAttribute(): string
+    public function getImageUrlAttribute(): string
     {
-        return cloudinary()->image($this->image_path)->toUrl();
+        if ($this->image_path) {
+            return 'https://res.cloudinary.com/dl4y5pap8/image/upload/' . $this->image_path . '.jpg';
+        }
+        return asset('images/default-product.png');
     }
+
+    protected $appends = [
+        'image_url',
+    ];
 }
