@@ -62,7 +62,10 @@ class ProductSeeder extends Seeder
             'is_featured' => true,
             'is_active' => true,
         ]);
-        $this->createImages($p1, 'products/ramo-amor-amor', 2);
+        $this->createImages($p1, [
+            'products/ramo-amor-amor-1',
+            'products/ramo-amor-amor-2',
+        ]);
 
         $p2 = Product::create([
             'category_id' => $rosas->id,
@@ -75,7 +78,11 @@ class ProductSeeder extends Seeder
             'is_featured' => true,
             'is_active' => true,
         ]);
-        $this->createImages($p2, 'products/ramo-amor-eterno', 3);
+        $this->createImages($p2, [
+            'products/ramo-amor-eterno-1',
+            'products/ramo-amor-eterno-2',
+            'products/ramo-amor-eterno-3',
+        ]);
 
         $p3 = Product::create([
             'category_id' => $rosas->id,
@@ -88,7 +95,10 @@ class ProductSeeder extends Seeder
             'is_featured' => true,
             'is_active' => true,
         ]);
-        $this->createImages($p3, 'products/ramo-eres-mi-sol', 2);
+        $this->createImages($p3, [
+            'products/ramo-eres-mi-sol-1',
+            'products/ramo-eres-mi-sol-2',
+        ]);
 
         $p4 = Product::create([
             'category_id' => $rosas->id,
@@ -101,7 +111,10 @@ class ProductSeeder extends Seeder
             'is_featured' => false,
             'is_active' => true,
         ]);
-        $this->createImages($p4, 'products/ramo-amor-bonito', 2);
+        $this->createImages($p4, [
+            'products/ramo-amor-bonito-1',
+            'products/ramo-amor-bonito-2',
+        ]);
 
         $p5 = Product::create([
             'category_id' => $rosas->id,
@@ -114,7 +127,10 @@ class ProductSeeder extends Seeder
             'is_featured' => false,
             'is_active' => true,
         ]);
-        $this->createImages($p5, 'products/ramo-vida-mia', 2);
+        $this->createImages($p5, [
+            'products/ramo-vida-mia-1',
+            'products/ramo-vida-mia-2',
+        ]);
 
         $p6 = Product::create([
             'category_id' => $rosas->id,
@@ -127,7 +143,10 @@ class ProductSeeder extends Seeder
             'is_featured' => false,
             'is_active' => true,
         ]);
-        $this->createImages($p6, 'products/ramo-rosas-negras', 2);
+        $this->createImages($p6, [
+            'products/ramo-rosas-negras-1',
+            'products/ramo-rosas-negras-2',
+        ]);
 
         // ==========================================
         // PRODUCTOS - GIRASOLES
@@ -144,7 +163,10 @@ class ProductSeeder extends Seeder
             'is_featured' => true,
             'is_active' => true,
         ]);
-        $this->createImages($p7, 'products/ramo-8-girasoles', 2);
+        $this->createImages($p7, [
+            'products/ramo-8-girasoles-1',
+            'products/ramo-8-girasoles-2',
+        ]);
 
         $p8 = Product::create([
             'category_id' => $girasoles->id,
@@ -157,7 +179,11 @@ class ProductSeeder extends Seeder
             'is_featured' => true,
             'is_active' => true,
         ]);
-        $this->createImages($p8, 'products/ramo-girasoles-rosas', 3);
+        $this->createImages($p8, [
+            'products/ramo-girasoles-rosas-1',
+            'products/ramo-girasoles-rosas-2',
+            'products/ramo-girasoles-rosas-3',
+        ]);
 
         $p9 = Product::create([
             'category_id' => $girasoles->id,
@@ -170,7 +196,9 @@ class ProductSeeder extends Seeder
             'is_featured' => false,
             'is_active' => true,
         ]);
-        $this->createImages($p9, 'products/mini-ramo-girasoles', 1);
+        $this->createImages($p9, [
+            'products/mini-ramo-girasoles-1',
+        ]);
 
         // ==========================================
         // PRODUCTOS - MIXTOS
@@ -187,7 +215,10 @@ class ProductSeeder extends Seeder
             'is_featured' => true,
             'is_active' => true,
         ]);
-        $this->createImages($p10, 'products/arreglo-jardin', 2);
+        $this->createImages($p10, [
+            'products/arreglo-jardin-1',
+            'products/arreglo-jardin-2',
+        ]);
 
         $p11 = Product::create([
             'category_id' => $mixtos->id,
@@ -200,7 +231,10 @@ class ProductSeeder extends Seeder
             'is_featured' => false,
             'is_active' => true,
         ]);
-        $this->createImages($p11, 'products/caja-corazon', 2);
+        $this->createImages($p11, [
+            'products/caja-corazon-1',
+            'products/caja-corazon-2',
+        ]);
 
         $p12 = Product::create([
             'category_id' => $mixtos->id,
@@ -213,7 +247,10 @@ class ProductSeeder extends Seeder
             'is_featured' => false,
             'is_active' => true,
         ]);
-        $this->createImages($p12, 'products/arreglo-primavera', 2);
+        $this->createImages($p12, [
+            'products/arreglo-primavera-1',
+            'products/arreglo-primavera-2',
+        ]);
 
         // ==========================================
         // PRODUCTOS - OCASIONES ESPECIALES
@@ -230,7 +267,11 @@ class ProductSeeder extends Seeder
             'is_featured' => true,
             'is_active' => true,
         ]);
-        $this->createImages($p13, 'products/set-san-valentin', 3);
+        $this->createImages($p13, [
+            'products/set-san-valentin-1',
+            'products/set-san-valentin-2',
+            'products/set-san-valentin-3',
+        ]);
 
         $p14 = Product::create([
             'category_id' => $especiales->id,
@@ -243,7 +284,10 @@ class ProductSeeder extends Seeder
             'is_featured' => false,
             'is_active' => true,
         ]);
-        $this->createImages($p14, 'products/ramo-cumpleanos', 2);
+        $this->createImages($p14, [
+            'products/ramo-cumpleanos-1',
+            'products/ramo-cumpleanos-2',
+        ]);
 
         $p15 = Product::create([
             'category_id' => $especiales->id,
@@ -256,7 +300,10 @@ class ProductSeeder extends Seeder
             'is_featured' => true,
             'is_active' => true,
         ]);
-        $this->createImages($p15, 'products/arreglo-madre', 2);
+        $this->createImages($p15, [
+            'products/arreglo-madre-1',
+            'products/arreglo-madre-2',
+        ]);
 
         $p16 = Product::create([
             'category_id' => $especiales->id,
@@ -269,21 +316,24 @@ class ProductSeeder extends Seeder
             'is_featured' => false,
             'is_active' => true,
         ]);
-        $this->createImages($p16, 'products/corona-funebre', 1);
+        $this->createImages($p16, [
+            'products/corona-funebre-1',
+        ]);
     }
 
     /**
      * Crear imágenes para un producto
      */
-    private function createImages(Product $product, string $basePath, int $count): void
+    private function createImages(Product $product, array $publicIds): void
     {
-        for ($i = 1; $i <= $count; $i++) {
+        foreach ($publicIds as $index => $publicId) {
             ProductImage::create([
                 'product_id' => $product->id,
-                'image_path' => "{$basePath}-{$i}.jpg",
-                'is_primary' => $i === 1,
-                'sort_order' => $i - 1,
+                'image_path' => $publicId,
+                'is_primary' => $index === 0,
+                'sort_order' => $index,
             ]);
         }
     }
+
 }

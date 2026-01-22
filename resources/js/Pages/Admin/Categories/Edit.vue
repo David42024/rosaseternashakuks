@@ -14,8 +14,9 @@ const form = useForm({
     is_active: props.category.is_active,
 })
 
-const imagePreview = ref(props.category.image ? `/storage/${props.category.image}` : null)
-
+const imagePreview = ref(
+    props.category?.image ? props.category.image : null
+)
 const handleImageChange = (e) => {
     const file = e.target.files[0]
     if (file) {

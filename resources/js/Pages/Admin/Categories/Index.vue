@@ -42,7 +42,7 @@ const deleteCategory = (id) => {
                         <td class="px-6 py-4">
                             <img 
                                 v-if="category.image"
-                                :src="`/storage/${category.image}`" 
+                                :src="category.image" 
                                 :alt="category.name"
                                 class="w-12 h-12 object-cover rounded-lg"
                             >

@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
+
 
 class Product extends Model
 {
@@ -110,21 +112,18 @@ class Product extends Model
     }
 
     // Imagen principal URL
+    // Imagen principal URL
     public function getPrimaryImageUrlAttribute(): string
-    {
-        $primary = $this->primaryImage;
-        
-        if ($primary) {
-            return asset('storage/' . $primary->image_path);
-        }
-        
-        $firstImage = $this->images->first();
-        if ($firstImage) {
-            return asset('storage/' . $firstImage->image_path);
-        }
-        
-        return asset('images/default-product.png');
+{
+    $image = $this->primaryImage ?? $this->images->first();
+
+    if ($image && $image->image_path) {
+        // Cloudinary genera la URL directamente
+        return 'https://res.cloudinary.com/' . config('cloudinary.cloud.cloud_name') . '/image/upload/' . $image->image_path . '.jpg';
     }
+
+    return asset('images/default-product.png');
+}
 
     // ==========================================
     // BOOT

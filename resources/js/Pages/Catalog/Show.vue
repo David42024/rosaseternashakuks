@@ -64,11 +64,12 @@ const buyWhatsApp = () => {
                 <div>
                     <div class="aspect-square bg-gray-100 rounded-2xl overflow-hidden mb-4">
                         <img 
-                            :src="images[selectedImage]?.url || images[selectedImage]?.image_path ? `/storage/${images[selectedImage].image_path}` : product.primary_image_url" 
+                            :src="images[selectedImage]?.image_path || product.primary_image_url"
                             :alt="product.name"
                             class="w-full h-full object-cover"
                         >
                     </div>
+
                     <div v-if="images.length > 1" class="grid grid-cols-5 gap-2">
                         <button 
                             v-for="(image, index) in images" 
@@ -80,13 +81,14 @@ const buyWhatsApp = () => {
                             ]"
                         >
                             <img 
-                                :src="image.url || `/storage/${image.image_path}`" 
+                                :src="image.image_path"
                                 :alt="`${product.name} ${index + 1}`"
                                 class="w-full h-full object-cover"
                             >
                         </button>
                     </div>
                 </div>
+
 
                 <!-- Información del producto -->
                 <div>

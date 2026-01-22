@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
+
 
 class ProductImage extends Model
 {
@@ -40,6 +42,6 @@ class ProductImage extends Model
 
     public function getUrlAttribute(): string
     {
-        return asset('storage/' . $this->image_path);
+        return cloudinary()->image($this->image_path)->toUrl();
     }
 }

@@ -56,9 +56,9 @@ const openWhatsApp = () => {
                             >
                                 <img 
                                     v-if="item.product?.images?.[0]"
-                                    :src="`/storage/${item.product.images[0].image_path}`"
+                                    :src="item.product.images[0].image_path"
                                     class="w-16 h-16 object-cover rounded-lg"
-                                >
+                                />
                                 <div v-else class="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
                                     <span class="text-2xl">🌹</span>
                                 </div>
