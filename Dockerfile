@@ -22,28 +22,47 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
-
-# Habilitar AllowOverride para .htaccess
 RUN sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
 
 WORKDIR /var/www/html
 
-# Copiar archivos de configuración primero
-COPY composer.json composer.lock* ./
+# COPIAR ARCHIVOS DE CONFIGURACIÓN PRIMERO
+COPY composer.json composer.lock* .env* ./
 
-# Instalar dependencias PHP
-RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+# CREAR .env SI NO EXISTE
+RUN if [ ! -f .env ]; then \
+    echo "APP_NAME=Laravel" > .env && \
+    echo "APP_ENV=production" >> .env && \
+    echo "APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=" >> .env && \
+    echo "APP_DEBUG=false" >> .env && \
+    echo "APP_URL=http://localhost" >> .env && \
+    echo "LOG_CHANNEL=stack" >> .env && \
+    echo "DB_CONNECTION=sqlite" >> .env && \
+    echo "CACHE_DRIVER=file" >> .env && \
+    echo "SESSION_DRIVER=file" >> .env && \
+    echo "QUEUE_CONNECTION=sync" >> .env; \
+    fi
 
-# Copiar el resto del proyecto
+# INSTALAR DEPENDENCIAS SIN SCRIPTS POST-INSTALL-CMD
+RUN COMPOSER_DISABLE_EVENTS=1 composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-scripts
+
+# COPIAR EL RESTO DEL PROYECTO
 COPY . .
 
-# Instalar dependencias Node y build
+# GENERAR APP_KEY SI ES NECESARIO
+RUN php artisan key:generate --show > /tmp/key.txt 2>/dev/null || \
+    (php artisan key:generate && echo "Key generated")
+
+# EJECUTAR package:discover MANUALMENTE
+RUN php artisan package:discover --ansi || true
+
+# INSTALAR DEPENDENCIAS NODE Y BUILD
 RUN npm install && npm run build
 
-# Crear directorios necesarios y permisos
+# CREAR DIRECTORIOS NECESARIOS
 RUN mkdir -p storage/framework/{sessions,views,cache} \
-    && mkdir -p storage/logs \
-    && mkdir -p bootstrap/cache \
+    storage/logs \
+    bootstrap/cache \
     && chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
