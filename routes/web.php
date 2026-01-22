@@ -9,7 +9,15 @@ use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Log;
 
+Route::get('/_debug/log', function () {
+    Log::error('TEST LOG STORAGE', [
+        'storage_link' => file_exists(public_path('storage')),
+    ]);
+
+    return 'ok';
+});
 // ==========================================
 // RUTAS PÚBLICAS
 // ==========================================

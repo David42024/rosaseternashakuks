@@ -1,18 +1,23 @@
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
-        Options -MultiViews -Indexes
+        Options -MultiViews -Indexes +FollowSymLinks
     </IfModule>
+
+    Options +FollowSymLinks
 
     RewriteEngine On
 
-    # Redirigir todas las solicitudes a la carpeta public
-    RewriteCond %{REQUEST_URI} !^/public/
+    # Permitir acceso directo a storage (symlink)
+    RewriteRule ^storage/(.*)$ storage/$1 [L]
+
+    # Redirigir todo a public si no empieza con public o storage
+    RewriteCond %{REQUEST_URI} !^/(public|storage)/
     RewriteRule ^(.*)$ /public/$1 [L]
 
     # Archivos estáticos permitidos
     RewriteCond %{REQUEST_URI} !\.(css|js|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot|ico)$ [NC]
 
-    # Si no es archivo físico, enviar a index.html de Inertia
+    # Si no es archivo físico, enviar a index.html (Inertia)
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^ /public/index.html [L]
