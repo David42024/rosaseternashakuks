@@ -1,36 +1,35 @@
 FROM php:8.2-apache
 
-# Dependencias del sistema
+# Instalar extensiones PHP
 RUN apt-get update && apt-get install -y \
+    libpq-dev \
     libzip-dev \
     zip \
     unzip \
-    git \
-    curl \
     nodejs \
     npm \
- && docker-php-ext-install pdo pdo_mysql zip \
- && a2enmod rewrite \
- && rm -rf /var/lib/apt/lists/*
+    && docker-php-ext-install pdo pdo_pgsql zip
 
-# Apache apunta a /public
-RUN sed -i 's|/var/www/html|/var/www/html/public|g' \
-    /etc/apache2/sites-available/000-default.conf
+# Instalar Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-WORKDIR /var/www/html
+# Configurar Apache
+RUN a2enmod rewrite
+ENV APACHE_DOCUMENT_ROOT /var/www/html/public
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
+RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
 # Copiar proyecto
+WORKDIR /var/www/html
 COPY . .
 
-# Composer
-RUN curl -sS https://getcomposer.org/installer | php \
-    && mv composer.phar /usr/local/bin/composer \
-    && composer install --no-dev --optimize-autoloader
-
-# Build frontend (Vite + Vue + Tailwind)
+# Instalar dependencias
+RUN composer install --no-dev --optimize-autoloader
 RUN npm install && npm run build
 
 # Permisos
-RUN chown -R www-data:www-data storage bootstrap/cache
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 EXPOSE 80
+CMD ["apache2-foreground"]
