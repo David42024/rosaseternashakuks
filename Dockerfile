@@ -42,9 +42,9 @@ COPY composer.json composer.lock* ./
 # CREAR .env MÍNIMO SI NO EXISTE
 # ============================================
 RUN if [ ! -f .env ]; then \
-    echo "APP_NAME=Rosas Eternas Hakuks" > .env && \
+    echo "APP_NAME=\"Rosas Eternas Hakuks\"" > .env && \
     echo "APP_ENV=production" >> .env && \
-    echo "APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=" >> .env && \
+    echo "APP_KEY=" >> .env && \
     echo "APP_DEBUG=false" >> .env && \
     echo "APP_URL=http://localhost" >> .env && \
     echo "LOG_CHANNEL=stack" >> .env && \
@@ -53,7 +53,7 @@ RUN if [ ! -f .env ]; then \
     echo "SESSION_DRIVER=file" >> .env && \
     echo "QUEUE_CONNECTION=sync" >> .env; \
     fi
-
+    
 # ============================================
 # INSTALAR DEPENDENCIAS PHP (SIN SCRIPTS)
 # ============================================
