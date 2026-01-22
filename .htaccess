@@ -1,0 +1,19 @@
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    # Redirigir todas las solicitudes a la carpeta public
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ /public/$1 [L]
+
+    # Archivos estáticos permitidos
+    RewriteCond %{REQUEST_URI} !\.(css|js|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot|ico)$ [NC]
+
+    # Si no es archivo físico, enviar a index.html de Inertia
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ /public/index.html [L]
+</IfModule>
