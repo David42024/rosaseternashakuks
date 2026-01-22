@@ -1,6 +1,8 @@
 FROM php:8.4-apache
 
-# Instalar dependencias del sistema
+# ============================================
+# INSTALAR DEPENDENCIAS DEL SISTEMA
+# ============================================
 RUN apt-get update && apt-get install -y \
     libpq-dev \
     libzip-dev \
@@ -15,10 +17,14 @@ RUN apt-get update && apt-get install -y \
     && a2enmod rewrite \
     && rm -rf /var/lib/apt/lists/*
 
-# Instalar Composer
+# ============================================
+# INSTALAR COMPOSER
+# ============================================
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Configurar Apache para Laravel
+# ============================================
+# CONFIGURAR APACHE PARA LARAVEL
+# ============================================
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
@@ -26,12 +32,17 @@ RUN sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/Allo
 
 WORKDIR /var/www/html
 
-# Copiar archivos de configuración primero
-COPY composer.json composer.lock* .env* ./
+# ============================================
+# COPIAR ARCHIVOS DE CONFIGURACIÓN
+# ============================================
+COPY .htaccess ./
+COPY composer.json composer.lock* ./
 
-# Crear .env si no existe
+# ============================================
+# CREAR .env MÍNIMO SI NO EXISTE
+# ============================================
 RUN if [ ! -f .env ]; then \
-    echo "APP_NAME=Laravel" > .env && \
+    echo "APP_NAME=Rosas Eternas Hakuks" > .env && \
     echo "APP_ENV=production" >> .env && \
     echo "APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=" >> .env && \
     echo "APP_DEBUG=false" >> .env && \
@@ -43,33 +54,51 @@ RUN if [ ! -f .env ]; then \
     echo "QUEUE_CONNECTION=sync" >> .env; \
     fi
 
-# Instalar dependencias sin scripts post-install-cmd
+# ============================================
+# INSTALAR DEPENDENCIAS PHP (SIN SCRIPTS)
+# ============================================
 RUN COMPOSER_DISABLE_EVENTS=1 composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-scripts
 
-# Copiar el resto del proyecto
+# ============================================
+# COPIAR EL RESTO DEL PROYECTO
+# ============================================
 COPY . .
 
-# Generar APP_KEY si es necesario
+# ============================================
+# GENERAR APP_KEY SI ES NECESARIO
+# ============================================
 RUN php artisan key:generate --show > /tmp/key.txt 2>/dev/null || \
     (php artisan key:generate && echo "Key generated")
 
-# Ejecutar package:discover manualmente
+# ============================================
+# EJECUTAR package:discover MANUALMENTE
+# ============================================
 RUN php artisan package:discover --ansi || true
 
-# Instalar dependencias Node y build
-RUN npm install && npm run build
+# ============================================
+# INSTALAR DEPENDENCIAS NODE (CON ZIGGY)
+# ============================================
+RUN npm install && npm install ziggy && npm run build
 
-# Crear directorios necesarios
-RUN mkdir -p storage/framework/{sessions,views,cache} \
+# ============================================
+# CREAR DIRECTORIOS NECESARIOS
+# ============================================
+RUN mkdir -p storage/framework/sessions \
+    storage/framework/views \
+    storage/framework/cache \
     storage/logs \
     bootstrap/cache \
-    && chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+    && chmod -R 775 storage bootstrap/cache
 
-# Copiar y configurar entrypoint
+# ============================================
+# COPIAR Y CONFIGURAR ENTRYPOINT
+# ============================================
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
+# ============================================
+# EXPONER PUERTO
+# ============================================
 EXPOSE 10000
 
 CMD ["/entrypoint.sh"]
