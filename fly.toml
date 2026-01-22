@@ -1,0 +1,24 @@
+# fly.toml - Configuración para Fly.io
+
+app = "rosas-eternas-hakuks"
+primary_region = "gru"  # São Paulo - más cerca de Perú
+
+[build]
+
+[env]
+  APP_ENV = "production"
+  APP_DEBUG = "false"
+  LOG_CHANNEL = "stderr"
+  LOG_LEVEL = "error"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 512
