@@ -23,4 +23,4 @@ RUN npm install && npm run build
 RUN mkdir -p storage/framework/{sessions,views,cache} storage/logs bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
-CMD sh -c "php artisan serve --host=0.0.0.0 --port=$PORT"
+CMD sh -c "php -S 0.0.0.0:$PORT -t public"
