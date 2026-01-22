@@ -26,10 +26,10 @@ RUN sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/Allo
 
 WORKDIR /var/www/html
 
-# COPIAR ARCHIVOS DE CONFIGURACIÓN PRIMERO
+# Copiar archivos de configuración primero
 COPY composer.json composer.lock* .env* ./
 
-# CREAR .env SI NO EXISTE
+# Crear .env si no existe
 RUN if [ ! -f .env ]; then \
     echo "APP_NAME=Laravel" > .env && \
     echo "APP_ENV=production" >> .env && \
@@ -43,29 +43,33 @@ RUN if [ ! -f .env ]; then \
     echo "QUEUE_CONNECTION=sync" >> .env; \
     fi
 
-# INSTALAR DEPENDENCIAS SIN SCRIPTS POST-INSTALL-CMD
+# Instalar dependencias sin scripts post-install-cmd
 RUN COMPOSER_DISABLE_EVENTS=1 composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-scripts
 
-# COPIAR EL RESTO DEL PROYECTO
+# Copiar el resto del proyecto
 COPY . .
 
-# GENERAR APP_KEY SI ES NECESARIO
+# Generar APP_KEY si es necesario
 RUN php artisan key:generate --show > /tmp/key.txt 2>/dev/null || \
     (php artisan key:generate && echo "Key generated")
 
-# EJECUTAR package:discover MANUALMENTE
+# Ejecutar package:discover manualmente
 RUN php artisan package:discover --ansi || true
 
-# INSTALAR DEPENDENCIAS NODE Y BUILD
+# Instalar dependencias Node y build
 RUN npm install && npm run build
 
-# CREAR DIRECTORIOS NECESARIOS
+# Crear directorios necesarios
 RUN mkdir -p storage/framework/{sessions,views,cache} \
     storage/logs \
     bootstrap/cache \
     && chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-EXPOSE 80
+# Copiar y configurar entrypoint
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-CMD ["apache2-foreground"]
+EXPOSE 10000
+
+CMD ["/entrypoint.sh"]
