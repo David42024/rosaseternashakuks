@@ -63,13 +63,6 @@ RUN COMPOSER_DISABLE_EVENTS=1 composer install --no-dev --optimize-autoloader --
 # COPIAR EL RESTO DEL PROYECTO
 # ============================================
 COPY . .
-
-# ============================================
-# GENERAR APP_KEY SI ES NECESARIO
-# ============================================
-RUN php artisan key:generate --show > /tmp/key.txt 2>/dev/null || \
-    (php artisan key:generate && echo "Key generated")
-
 # ============================================
 # EJECUTAR package:discover MANUALMENTE
 # ============================================
