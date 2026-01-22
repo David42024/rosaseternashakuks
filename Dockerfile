@@ -1,5 +1,6 @@
-FROM php:8.4-cli
+FROM php:8.2-apache
 
+# Instalar dependencias del sistema
 RUN apt-get update && apt-get install -y \
     libpq-dev \
     libzip-dev \
@@ -10,17 +11,38 @@ RUN apt-get update && apt-get install -y \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
     && docker-php-ext-install pdo pdo_pgsql zip \
+    && a2enmod rewrite \
     && rm -rf /var/lib/apt/lists/*
 
+# Instalar Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-WORKDIR /app
+# Configurar Apache para Laravel (apuntar a /public)
+ENV APACHE_DOCUMENT_ROOT /var/www/html/public
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
+RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+
+# Habilitar AllowOverride para .htaccess
+RUN sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
+
+WORKDIR /var/www/html
+
+# Copiar TODO el proyecto primero
 COPY . .
 
+# Instalar dependencias PHP
 RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+# Instalar dependencias Node y build
 RUN npm install && npm run build
 
-RUN mkdir -p storage/framework/{sessions,views,cache} storage/logs bootstrap/cache \
+# Crear directorios necesarios y permisos
+RUN mkdir -p storage/framework/{sessions,views,cache} \
+    && mkdir -p storage/logs \
+    && mkdir -p bootstrap/cache \
+    && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
-CMD sh -c "php -S 0.0.0.0:$PORT -t public"
+EXPOSE 80
+
+CMD ["apache2-foreground"]
