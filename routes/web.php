@@ -12,28 +12,30 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Log;
 
 
-Route::get('/_debug/storage', function () {
-    return response()->json([
-        'app_url' => config('app.url'),
-        'public_path' => public_path(),
-        'storage_path' => storage_path(),
-        'storage_link_exists' => file_exists(public_path('storage')),
-        'storage_is_link' => is_link(public_path('storage')),
-        'storage_public_exists' => file_exists(storage_path('app/public')),
-        'files_in_storage_public' => file_exists(storage_path('app/public'))
-            ? array_slice(scandir(storage_path('app/public')), 0, 10)
-            : null,
-        'storage_url_example' => asset('storage/test.jpg'),
-    ]);
-});
+#Route::get('/_debug/storage', function () {
+ #   return response()->json([
+  #      'app_url' => config('app.url'),
+   #     'public_path' => public_path(),
+    #    'storage_path' => storage_path(),
+     #   'storage_link_exists' => file_exists(public_path('storage')),
+      #  'storage_is_link' => is_link(public_path('storage')),
+       # 'storage_public_exists' => file_exists(storage_path('app/public')),
+       # 'files_in_storage_public' => file_exists(storage_path('app/public'))
+      #      ? array_slice(scandir(storage_path('app/public')), 0, 10)
+       #     : null,
+       # 'storage_url_example' => asset('storage/test.jpg'),
+    #]);
+#});
 
-Route::get('/_debug/log', function () {
-    Log::error('TEST LOG STORAGE', [
-        'storage_link' => file_exists(public_path('storage')),
-    ]);
+#Route::get('/_debug/log', function () {
+ #   Log::error('TEST LOG STORAGE', [
+  #      'storage_link' => file_exists(public_path('storage')),
+   # ]);
 
-    return 'ok';
-});
+   # return 'ok';
+#});
+
+
 // ==========================================
 // RUTAS PÚBLICAS
 // ==========================================

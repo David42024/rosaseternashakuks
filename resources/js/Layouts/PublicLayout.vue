@@ -1,13 +1,37 @@
 <script setup>
 import { Link } from '@inertiajs/vue3'
+import { useCartStore } from '@/stores/cartStore'
+import { useNotificationStore } from '@/stores/notificationStore' // Importar store de notificaciones
+import { onMounted } from 'vue'
 
 defineProps({
     title: String
+})
+
+const cartStore = useCartStore()
+const notificationStore = useNotificationStore() // Usar store de notificaciones
+
+// Inicializar al montar
+onMounted(() => {
+    cartStore.initialize()
 })
 </script>
 
 <template>
     <div class="min-h-screen bg-stone-50 font-sans selection:bg-rose-500 selection:text-white">
+        <!-- NOTIFICACIÓN GLOBAL - Fuera del nav -->
+        <div v-if="notificationStore.show" 
+             :class="[
+                 'fixed top-4 right-4 p-4 rounded-lg shadow-lg z-[9999] transition-all duration-300 transform',
+                 notificationStore.type === 'success' ? 'bg-green-500 text-white' : 
+                 notificationStore.type === 'error' ? 'bg-red-500 text-white' :
+                 notificationStore.type === 'warning' ? 'bg-yellow-500 text-white' :
+                 'bg-blue-500 text-white'
+             ]"
+             class="notification">
+            {{ notificationStore.message }}
+        </div>
+
         <nav class="fixed w-full top-0 z-50 transition-all duration-300 bg-white/80 backdrop-blur-md border-b border-rose-100/50 shadow-sm">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center h-20">
@@ -36,7 +60,9 @@ defineProps({
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600 group-hover:text-rose-600 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
-                            <span class="absolute top-0 right-0 bg-rose-600 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center font-bold shadow-sm ring-2 ring-white">0</span>
+                            <span class="cart-badge absolute top-0 right-0 bg-rose-600 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center font-bold shadow-sm ring-2 ring-white">
+                                {{ cartStore.totalItems }}
+                            </span>
                         </Link>
                     </div>
 

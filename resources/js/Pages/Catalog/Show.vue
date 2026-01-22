@@ -1,7 +1,12 @@
 <script setup>
-import { Link, router, usePage } from '@inertiajs/vue3'
-import { ref, computed } from 'vue'
+import { Link, router } from '@inertiajs/vue3'
+import { ref, computed, onMounted } from 'vue'
 import PublicLayout from '@/Layouts/PublicLayout.vue'
+import { useCartStore } from '@/stores/cartStore'
+// Y agrega el import del store de notificaciones:
+import { useNotificationStore } from '@/stores/notificationStore'
+
+const notificationStore = useNotificationStore()
 
 const props = defineProps({
     product: Object,
@@ -11,6 +16,18 @@ const props = defineProps({
 const quantity = ref(1)
 const selectedImage = ref(0)
 const adding = ref(false)
+const cartStore = useCartStore()
+
+// Calcular cantidad máxima permitida considerando ya en carrito
+const maxAllowedQuantity = computed(() => {
+  const inCart = cartStore.getProductQuantity(props.product.id)
+  return Math.max(0, props.product.stock - inCart)
+})
+
+// Verificar si ya está en carrito
+const isInCart = computed(() => {
+  return cartStore.getProductQuantity(props.product.id) > 0
+})
 
 const images = computed(() => {
     return props.product.images?.length > 0 
@@ -18,22 +35,80 @@ const images = computed(() => {
         : [{ image_url: props.product.primary_image_url }]
 })
 
-const addToCart = () => {
+// En CatalogShow.vue, modifica la función addToCart:
+const addToCart = async () => {
+    if (props.product.stock === 0 || quantity.value <= 0) return
+    
     adding.value = true
-    router.post('/carrito/agregar', {
-        product_id: props.product.id,
-        quantity: quantity.value,
-    }, {
-        preserveScroll: true,
-        onFinish: () => { adding.value = false }
-    })
+    
+    try {
+        // Validar cantidad disponible
+        if (quantity.value > maxAllowedQuantity.value) {
+            notificationStore.notify(
+                `❌ No puedes agregar ${quantity.value} unidades. Ya tienes ${cartStore.getProductQuantity(props.product.id)} en el carrito y solo hay ${props.product.stock} disponibles.`,
+                'error'
+            )
+            adding.value = false
+            return
+        }
+        
+        const result = await cartStore.addItem(
+            props.product.id, 
+            quantity.value, 
+            props.product.stock
+        )
+        
+        if (result.success) {
+            // Usar el store de notificaciones
+            notificationStore.notify(result.message || '✅ Producto agregado al carrito', 'success')
+            
+            // Resetear cantidad a 1 para futuras compras
+            quantity.value = 1
+            
+            // Si el producto ya no tiene stock disponible
+            if (maxAllowedQuantity.value - quantity.value <= 0) {
+                notificationStore.notify('⚠️ ¡Has alcanzado el stock máximo disponible de este producto!', 'warning')
+            }
+        } else {
+            notificationStore.notify(`❌ ${result.error || 'Error al agregar al carrito'}`, 'error')
+        }
+    } catch (error) {
+        console.error('Error inesperado:', error)
+        notificationStore.notify('❌ Error inesperado', 'error')
+    } finally {
+        adding.value = false
+    }
 }
+
+
 
 const buyWhatsApp = () => {
     const message = `🌹 ¡Hola Hakuks! Me interesa este producto:\n\n*${props.product.name}*\nPrecio: $${props.product.current_price}\nCantidad: ${quantity.value}\n\n¿Me podrían dar más información?`
     const phone = '5218673160224'
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank')
 }
+
+// Función para notificaciones (puedes usar una librería como Toast)
+const showNotification = (message, type = 'success') => {
+    // Aquí puedes implementar notificaciones toast
+    // Por ahora usamos console.log y alert
+    console.log(`${type}: ${message}`)
+    
+    // Para desarrollo, usar alert
+    if (import.meta.env.DEV) {
+        if (type === 'error') {
+            alert(message)
+        }
+    }
+    
+    // En producción, implementa un sistema de notificaciones
+    // Ejemplo con Alpine.js o un store de notificaciones
+}
+
+// Inicializar el store al montar
+onMounted(() => {
+    cartStore.initialize()
+})
 </script>
 
 <template>
@@ -98,30 +173,70 @@ const buyWhatsApp = () => {
                             {{ product.description }}
                         </div>
 
-                        <div class="flex items-center gap-2">
-                            <div :class="['w-2 h-2 rounded-full', product.stock > 0 ? 'bg-green-500' : 'bg-red-500']"></div>
-                            <span :class="['text-sm font-medium', product.stock > 0 ? 'text-green-600' : 'text-red-600']">
-                                {{ product.stock > 0 ? `Disponible (${product.stock} unidades)` : 'Agotado' }}
-                            </span>
+                        <div class="flex flex-col gap-2">
+                            <div class="flex items-center gap-2">
+                                <div :class="['w-2 h-2 rounded-full', product.stock > 0 ? 'bg-green-500' : 'bg-red-500']"></div>
+                                <span :class="['text-sm font-medium', product.stock > 0 ? 'text-green-600' : 'text-red-600']">
+                                    {{ product.stock > 0 ? `Disponible (${product.stock} unidades)` : 'Agotado' }}
+                                </span>
+                            </div>
+                            
+                            <!-- Indicador de cantidad en carrito -->
+                            <div v-if="isInCart" class="flex items-center gap-2 text-sm">
+                                <div class="w-2 h-2 rounded-full bg-rose-500"></div>
+                                <span class="text-rose-600 font-medium">
+                                    Ya tienes {{ cartStore.getProductQuantity(product.id) }} en el carrito
+                                </span>
+                            </div>
                         </div>
 
                         <div class="flex flex-col gap-4 py-4">
-                            <label class="text-xs font-bold uppercase text-gray-400 tracking-widest">Cantidad</label>
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-bold uppercase text-gray-400 tracking-widest">Cantidad</label>
+                                <span v-if="maxAllowedQuantity > 0" class="text-xs text-gray-500">
+                                    Máximo: {{ maxAllowedQuantity }}
+                                </span>
+                                <span v-else class="text-xs text-red-500 font-medium">
+                                    Stock máximo alcanzado
+                                </span>
+                            </div>
+                            
                             <div class="flex items-center w-max border-2 border-gray-100 rounded-2xl p-1">
-                                <button @click="quantity = Math.max(1, quantity - 1)" class="w-10 h-10 flex items-center justify-center hover:bg-rose-50 rounded-xl transition">-</button>
+                                <button 
+                                    @click="quantity = Math.max(1, quantity - 1)" 
+                                    :disabled="quantity <= 1"
+                                    class="w-10 h-10 flex items-center justify-center hover:bg-rose-50 rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    -
+                                </button>
                                 <span class="w-12 text-center font-bold">{{ quantity }}</span>
-                                <button @click="quantity = Math.min(product.stock, quantity + 1)" class="w-10 h-10 flex items-center justify-center hover:bg-rose-50 rounded-xl transition">+</button>
+                                <button 
+                                    @click="quantity = Math.min(maxAllowedQuantity, quantity + 1)" 
+                                    :disabled="quantity >= maxAllowedQuantity || maxAllowedQuantity === 0"
+                                    class="w-10 h-10 flex items-center justify-center hover:bg-rose-50 rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    +
+                                </button>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-1 gap-4 pt-4">
                             <button 
                                 @click="addToCart"
-                                :disabled="adding || product.stock === 0"
-                                class="w-full bg-gray-900 text-white py-5 rounded-2xl font-bold hover:bg-rose-600 transition-all shadow-xl disabled:opacity-50 flex items-center justify-center gap-3"
+                                :disabled="adding || product.stock === 0 || maxAllowedQuantity === 0"
+                                class="w-full bg-gray-900 text-white py-5 rounded-2xl font-bold hover:bg-rose-600 transition-all shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 relative group"
                             >
-                                <span v-if="!adding">🛒 Agregar a la bolsa</span>
+                                <span v-if="!adding">
+                                    <span v-if="isInCart">➕ Agregar más al carrito</span>
+                                    <span v-else>🛒 Agregar al carrito</span>
+                                </span>
                                 <span v-else>Procesando...</span>
+                                
+                                <!-- Tooltip para stock máximo -->
+                                <div v-if="maxAllowedQuantity === 0" 
+                                     class="absolute bottom-full mb-2 hidden group-hover:block w-64 p-2 bg-gray-800 text-white text-xs rounded-lg">
+                                    Ya tienes el stock máximo disponible en tu carrito ({{ cartStore.getProductQuantity(product.id) }} unidades)
+                                </div>
                             </button>
                             
                             <button 

@@ -27,6 +27,7 @@ class CartController extends Controller
                     'image' => $product->primary_image_url,
                     'quantity' => $item['quantity'],
                     'total' => $itemTotal,
+                    'max_stock' => $product->stock,
                 ];
                 $subtotal += $itemTotal;
             }
