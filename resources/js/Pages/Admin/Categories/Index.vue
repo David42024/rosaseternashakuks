@@ -41,8 +41,8 @@ const deleteCategory = (id) => {
                     <tr v-for="category in categories.data" :key="category.id">
                         <td class="px-6 py-4">
                             <img 
-                                v-if="category.image"
-                                :src="category.image" 
+                                v-if="category.image_url"
+                                :src="category.image_url" 
                                 :alt="category.name"
                                 class="w-12 h-12 object-cover rounded-lg"
                             >

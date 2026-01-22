@@ -119,7 +119,7 @@ class Product extends Model
 
     if ($image && $image->image_path) {
         // Cloudinary genera la URL directamente
-        return 'https://res.cloudinary.com/' . config('cloudinary.cloud.cloud_name') . '/image/upload/' . $image->image_path . '.jpg';
+        return 'https://res.cloudinary.com/dl4y5pap8/image/upload/' . $image->image_path . '.jpg';
     }
 
     return asset('images/default-product.png');

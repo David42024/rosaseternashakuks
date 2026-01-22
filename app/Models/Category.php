@@ -65,9 +65,13 @@ class Category extends Model
     public function getImageUrlAttribute(): string
     {
         if ($this->image) {
-            return cloudinary()->image($this->image)->toUrl();
+            return 'https://res.cloudinary.com/dl4y5pap8/image/upload/' . $this->image . '.jpg';
         }
 
         return asset('images/default-category.png');
     }
+
+    protected $appends = [
+        'image_url',
+    ];
 }

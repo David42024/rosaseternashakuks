@@ -88,8 +88,8 @@ defineProps({
                     >
                         <div class="absolute inset-0 bg-gray-200">
                             <img 
-                                v-if="category.image"
-                                :src="category.image" 
+                                v-if="category.image_url"
+                                :src="category.image_url" 
                                 :alt="category.name"
                                 class="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-in-out"
                             >
