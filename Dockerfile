@@ -46,14 +46,14 @@ RUN if [ ! -f .env ]; then \
     echo "APP_ENV=production" >> .env && \
     echo "APP_KEY=" >> .env && \
     echo "APP_DEBUG=false" >> .env && \
-    echo "APP_URL=http://localhost" >> .env && \
+    echo "APP_URL=https://rosaseternashakuks.onrender.com" >> .env && \
     echo "LOG_CHANNEL=stack" >> .env && \
     echo "DB_CONNECTION=sqlite" >> .env && \
     echo "CACHE_DRIVER=file" >> .env && \
     echo "SESSION_DRIVER=file" >> .env && \
     echo "QUEUE_CONNECTION=sync" >> .env; \
     fi
-    
+
 # ============================================
 # INSTALAR DEPENDENCIAS PHP (SIN SCRIPTS)
 # ============================================

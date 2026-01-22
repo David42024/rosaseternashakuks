@@ -28,4 +28,5 @@ export default defineConfig({
             host: 'localhost',
         },
     },
+    appType: 'spa',
 });
