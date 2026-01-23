@@ -150,7 +150,7 @@ const submit = () => {
                                     <p class="font-medium text-gray-900 truncate">{{ item.name }}</p>
                                     <p class="text-sm text-gray-500">x{{ item.quantity }}</p>
                                 </div>
-                                <span class="font-semibold">S/{{ item.total.toFixed(2) }}</span>
+                                <span class="font-semibold">MXN {{ item.total.toFixed(2) }}</span>
                             </div>
                         </div>
 
@@ -158,7 +158,7 @@ const submit = () => {
                         <div class="border-t pt-4 space-y-2">
                             <div class="flex justify-between text-gray-600">
                                 <span>Subtotal</span>
-                                <span>S/{{ subtotal.toFixed(2) }}</span>
+                                <span>MXN {{ subtotal.toFixed(2) }}</span>
                             </div>
                             <div class="flex justify-between text-gray-600">
                                 <span>Envío</span>
@@ -166,7 +166,7 @@ const submit = () => {
                             </div>
                             <div class="flex justify-between text-xl font-bold pt-2 border-t">
                                 <span>Total</span>
-                                <span class="text-pink-600">S/{{ total.toFixed(2) }}</span>
+                                <span class="text-pink-600">MXN {{ total.toFixed(2) }}</span>
                             </div>
                         </div>
 

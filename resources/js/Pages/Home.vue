@@ -154,10 +154,10 @@ defineProps({
                             
                             <div class="flex items-end gap-3 mt-4 border-t border-gray-50 pt-4">
                                 <span class="text-xl font-bold text-gray-900">
-                                    S/{{ product.current_price }}
+                                    MXN {{ product.current_price }}
                                 </span>
                                 <span v-if="product.sale_price" class="text-sm text-gray-400 line-through mb-1">
-                                    S/{{ product.price }}
+                                    MXN {{ product.price }}
                                 </span>
                             </div>
                         </div>

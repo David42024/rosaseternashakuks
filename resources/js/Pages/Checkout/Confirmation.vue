@@ -12,16 +12,16 @@ const whatsappMessage = () => {
     message += `📋 *Resumen:*\n`
     
     props.order.items.forEach(item => {
-        message += `• ${item.product_name} x${item.quantity} - S/${item.subtotal}\n`
+        message += `• ${item.product_name} x${item.quantity} - MXN ${item.subtotal}\n`
     })
     
-    message += `\n💰 *Total: S/${props.order.total}*\n\n`
+    message += `\n💰 *Total: MXN ${props.order.total}*\n\n`
     message += `¿Cómo coordinamos el pago y entrega?`
     
     return encodeURIComponent(message)
 }
 
-const whatsappUrl = `https://wa.me/51999999999?text=${whatsappMessage()}`
+const whatsappUrl = `https://wa.me/5218673160224?text=${whatsappMessage()}`
 </script>
 
 <template>
@@ -72,10 +72,10 @@ const whatsappUrl = `https://wa.me/51999999999?text=${whatsappMessage()}`
                             <div>
                                 <p class="font-medium text-gray-900">{{ item.product_name }}</p>
                                 <p class="text-sm text-gray-500">
-                                    S/{{ item.price }} × {{ item.quantity }}
+                                    MXN {{ item.price }} × {{ item.quantity }}
                                 </p>
                             </div>
-                            <span class="font-semibold">S/{{ item.subtotal }}</span>
+                            <span class="font-semibold">MXN {{ item.subtotal }}</span>
                         </div>
                     </div>
                 </div>
@@ -84,7 +84,7 @@ const whatsappUrl = `https://wa.me/51999999999?text=${whatsappMessage()}`
                 <div class="bg-gray-50 px-6 py-4">
                     <div class="flex justify-between items-center text-lg font-bold">
                         <span>Total</span>
-                        <span class="text-pink-600">S/{{ order.total }}</span>
+                        <span class="text-pink-600">MXN {{ order.total }}</span>
                     </div>
                 </div>
             </div>

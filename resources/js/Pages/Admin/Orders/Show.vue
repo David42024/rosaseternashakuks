@@ -20,7 +20,7 @@ const updateStatus = (status) => {
 }
 
 const openWhatsApp = () => {
-    const message = `Hola ${props.order.customer_name}! 🌹\n\nTu pedido #${props.order.id} está siendo procesado.\n\nTotal: S/${props.order.total}\n\n¿Cómo prefieres coordinar el pago y entrega?`
+    const message = `Hola ${props.order.customer_name}! 🌹\n\nTu pedido #${props.order.id} está siendo procesado.\n\nTotal: MXN ${props.order.total}\n\n¿Cómo prefieres coordinar el pago y entrega?`
     window.open(`https://wa.me/51${props.order.customer_phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`, '_blank')
 }
 </script>
@@ -64,14 +64,14 @@ const openWhatsApp = () => {
                                 </div>
                                 <div class="flex-1">
                                     <p class="font-medium text-gray-900">{{ item.product_name }}</p>
-                                    <p class="text-sm text-gray-500">S/{{ item.price }} x {{ item.quantity }}</p>
+                                    <p class="text-sm text-gray-500">MXN {{ item.price }} x {{ item.quantity }}</p>
                                 </div>
-                                <span class="font-semibold">S/{{ item.subtotal }}</span>
+                                <span class="font-semibold">MXN {{ item.subtotal }}</span>
                             </div>
                         </div>
                         <div class="border-t mt-4 pt-4 flex justify-between text-lg font-bold">
                             <span>Total</span>
-                            <span class="text-pink-600">S/{{ order.total }}</span>
+                            <span class="text-pink-600">MXN {{ order.total }}</span>
                         </div>
                     </div>
 

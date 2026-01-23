@@ -117,7 +117,7 @@ const statusColors = {
                             </div>
                         </td>
                         <td class="px-6 py-4">
-                            <span class="font-bold text-gray-900">S/{{ parseFloat(order.total).toFixed(2) }}</span>
+                            <span class="font-bold text-gray-900">MXN {{ parseFloat(order.total).toFixed(2) }}</span>
                         </td>
                         <td class="px-6 py-4">
                             <span :class="['px-2 py-1 text-xs rounded-full', statusColors[order.status]]">

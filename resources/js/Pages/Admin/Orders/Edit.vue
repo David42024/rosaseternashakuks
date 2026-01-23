@@ -168,7 +168,7 @@ const submit = () => {
                         >
                             <option value="">Seleccionar producto...</option>
                             <option v-for="product in products" :key="product.id" :value="product.id">
-                                {{ product.name }} - S/{{ product.current_price }}
+                                {{ product.name }} - MXN {{ product.current_price }}
                             </option>
                         </select>
                         <input 
@@ -204,7 +204,7 @@ const submit = () => {
                             </div>
                             <div class="flex-1">
                                 <p class="font-medium">{{ item.product_name }}</p>
-                                <p class="text-sm text-gray-500">S/{{ item.price }} c/u</p>
+                                <p class="text-sm text-gray-500">MXN {{ item.price }} c/u</p>
                             </div>
                             <div class="flex items-center gap-2">
                                 <button 
@@ -219,7 +219,7 @@ const submit = () => {
                                     class="w-8 h-8 bg-gray-200 rounded hover:bg-gray-300"
                                 >+</button>
                             </div>
-                            <span class="font-bold w-24 text-right">S/{{ item.subtotal.toFixed(2) }}</span>
+                            <span class="font-bold w-24 text-right">MXN {{ item.subtotal.toFixed(2) }}</span>
                             <button 
                                 type="button"
                                 @click="removeItem(index)"
@@ -235,7 +235,7 @@ const submit = () => {
                     <!-- Total -->
                     <div v-if="form.items.length > 0" class="border-t pt-4 flex justify-between items-center">
                         <span class="text-lg font-semibold">Total:</span>
-                        <span class="text-2xl font-bold text-pink-600">S/{{ total.toFixed(2) }}</span>
+                        <span class="text-2xl font-bold text-pink-600">MXN {{ total.toFixed(2) }}</span>
                     </div>
 
                     <p v-if="form.errors.items" class="text-red-500 text-sm">{{ form.errors.items }}</p>

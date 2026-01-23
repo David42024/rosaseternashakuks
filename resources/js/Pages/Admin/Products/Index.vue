@@ -124,9 +124,9 @@ const toggleActive = (product) => {
                         </td>
                         <td class="px-6 py-4">
                             <div>
-                                <span class="font-medium text-gray-900">S/{{ product.price }}</span>
+                                <span class="font-medium text-gray-900">MXN {{ product.price }}</span>
                                 <span v-if="product.sale_price" class="block text-sm text-red-600">
-                                    Oferta: S/{{ product.sale_price }}
+                                    Oferta: MXN {{ product.sale_price }}
                                 </span>
                             </div>
                         </td>

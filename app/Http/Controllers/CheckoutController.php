@@ -136,7 +136,7 @@ class CheckoutController extends Controller
         $message .= "¡Hola! Me gustaría hacer este pedido. 😊";
 
         // Número de WhatsApp (configurar en .env)
-        $phone = config('app.whatsapp_number', '51999999999');
+        $phone = config('app.whatsapp_number', '5218673160224');
 
         $whatsappUrl = "https://wa.me/{$phone}?text=" . urlencode($message);
 

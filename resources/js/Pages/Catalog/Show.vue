@@ -162,10 +162,10 @@ onMounted(() => {
 
                         <div class="flex items-baseline gap-4 border-b border-gray-100 pb-6">
                             <span class="text-4xl font-light text-rose-600">
-                                ${{ product.current_price }}
+                                MXN {{ product.current_price }}
                             </span>
                             <span v-if="product.sale_price" class="text-xl text-gray-300 line-through">
-                                ${{ product.price }}
+                                MXN {{ product.price }}
                             </span>
                         </div>
 
@@ -266,7 +266,7 @@ onMounted(() => {
                             <img :src="related.primary_image_url" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
                         </div>
                         <h3 class="font-medium text-gray-800 truncate group-hover:text-rose-500 transition">{{ related.name }}</h3>
-                        <p class="text-rose-600 font-bold mt-1">${{ related.current_price }}</p>
+                        <p class="text-rose-600 font-bold mt-1">MXN {{ related.current_price }}</p>
                     </Link>
                 </div>
             </section>

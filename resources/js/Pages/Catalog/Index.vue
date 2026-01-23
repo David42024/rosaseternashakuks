@@ -130,10 +130,10 @@ const onSearch = () => {
                                 <p class="text-sm text-gray-500">{{ product.category?.name }}</p>
                                 <div class="mt-2 flex items-center gap-2">
                                     <span class="text-lg font-bold text-pink-600">
-                                        S/{{ product.current_price }}
+                                        MXN {{ product.current_price }}
                                     </span>
                                     <span v-if="product.sale_price" class="text-sm text-gray-400 line-through">
-                                        S/{{ product.price }}
+                                        MXN {{ product.price }}
                                     </span>
                                 </div>
                             </div>

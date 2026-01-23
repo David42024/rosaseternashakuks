@@ -246,11 +246,11 @@ const generateWhatsAppMessage = () => {
     let message = `🌹 *¡Hola Hakuks!* \n\nQuiero hacer un pedido:\n\n`
     
     localItems.forEach(item => {
-        message += `• *${item.name}*\n  Cantidad: ${item.quantity}\n  Precio: S/${item.price}\n  Subtotal: S/${item.total.toFixed(2)}\n\n`
+        message += `• *${item.name}*\n  Cantidad: ${item.quantity}\n  Precio: MXN ${item.price}\n  Subtotal: MXN ${item.total.toFixed(2)}\n\n`
     })
     
-    message += `*Subtotal: S/${localTotals.subtotal.toFixed(2)}*\n`
-    message += `*Total: S/${localTotals.total.toFixed(2)}*\n\n`
+    message += `*Subtotal: MXN ${localTotals.subtotal.toFixed(2)}*\n`
+    message += `*Total: MXN ${localTotals.total.toFixed(2)}*\n\n`
     message += `Por favor, confírmenme disponibilidad y proceso de pago. ¡Gracias!`
     
     return message
@@ -291,9 +291,9 @@ const generateWhatsAppMessage = () => {
                                 {{ item.name }}
                             </Link>
                             <div class="flex items-center gap-2 mt-1">
-                                <span class="text-pink-600 font-bold">S/{{ item.price }}</span>
+                                <span class="text-pink-600 font-bold">MXN {{ item.price }}</span>
                                 <span v-if="item.original_price !== item.price" class="text-gray-400 line-through text-sm">
-                                    S/{{ item.original_price }}
+                                    MXN{{ item.original_price }}
                                 </span>
                             </div>
                             <!-- Indicador de stock disponible -->
@@ -327,7 +327,7 @@ const generateWhatsAppMessage = () => {
 
                         <!-- Subtotal -->
                         <div class="text-right w-24">
-                            <span class="font-bold text-gray-900">S/{{ item.total.toFixed(2) }}</span>
+                            <span class="font-bold text-gray-900">MXN {{ item.total.toFixed(2) }}</span>
                         </div>
 
                         <!-- Eliminar -->
@@ -348,11 +348,11 @@ const generateWhatsAppMessage = () => {
                 <div class="mt-6 bg-white rounded-xl shadow-sm p-6">
                     <div class="flex justify-between items-center text-lg mb-4">
                         <span class="text-gray-600">Subtotal</span>
-                        <span class="font-semibold">S/{{ localTotals.subtotal.toFixed(2) }}</span>
+                        <span class="font-semibold">MXN {{ localTotals.subtotal.toFixed(2) }}</span>
                     </div>
                     <div class="flex justify-between items-center text-xl font-bold border-t pt-4">
                         <span>Total</span>
-                        <span class="text-pink-600">S/{{ localTotals.total.toFixed(2) }}</span>
+                        <span class="text-pink-600">MXN {{ localTotals.total.toFixed(2) }}</span>
                     </div>
                 </div>
 

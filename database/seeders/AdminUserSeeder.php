@@ -14,7 +14,7 @@ class AdminUserSeeder extends Seeder
             'name' => 'Haku',
             'email' => 'haku@gmail.com',
             'password' => Hash::make('123456'),
-            'phone' => '999999999',
+            'phone' => '5218673160224',
             'role' => 'admin',
             'newsletter' => false,
         ]);

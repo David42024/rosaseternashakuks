@@ -95,7 +95,7 @@ const submit = () => {
                     
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Precio (S/) *</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Precio (MXN) *</label>
                             <input 
                                 v-model="form.price"
                                 type="number"
@@ -109,7 +109,7 @@ const submit = () => {
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Precio oferta (S/)</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Precio oferta (MXN)</label>
                             <input 
                                 v-model="form.sale_price"
                                 type="number"
