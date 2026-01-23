@@ -29,10 +29,10 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         if ($request->user()->isAdmin()) {
-            return Inertia::location('/admin');
+            return redirect()->intended('/admin');
         }
 
-        return Inertia::location('/');
+        return redirect()->intended('/');
     }
 
     /**

@@ -85,8 +85,8 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::delete('products/images/{image}', [ProductController::class, 'deleteImage'])->name('products.images.delete');
     
     // Pedidos
-    Route::resource('orders', OrderController::class)->only(['index', 'show', 'update', 'destroy']);
     Route::patch('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status');
+    Route::resource('orders', OrderController::class);
 
     //Users
     Route::resource('users', UserController::class);

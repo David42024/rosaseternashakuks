@@ -55,8 +55,8 @@ const openWhatsApp = () => {
                                 class="flex items-center gap-4 py-3 border-b last:border-b-0"
                             >
                                 <img 
-                                    v-if="item.product?.images?.[0]"
-                                    :src="item.product.images[0].image_path"
+                                    v-if="item.product"
+                                    :src="item.product.primary_image_url"
                                     class="w-16 h-16 object-cover rounded-lg"
                                 />
                                 <div v-else class="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">

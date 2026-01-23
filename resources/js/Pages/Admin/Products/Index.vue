@@ -34,9 +34,17 @@ const onSearch = () => {
     searchTimeout = setTimeout(applyFilters, 300)
 }
 
-const deleteProduct = (id) => {
-    if (confirm('¿Estás seguro de eliminar este producto?')) {
-        router.delete(`/admin/products/${id}`)
+const toggleActive = (product) => {
+    const action = product.is_active ? 'desactivar' : 'activar'
+    if (confirm(`¿Estás seguro de ${action} "${product.name}"?`)) {
+        router.delete(`/admin/products/${product.id}`, {
+            data: {
+                search: search.value || undefined,
+                category: categoryFilter.value || undefined,
+                status: statusFilter.value || undefined,
+            },
+            preserveScroll: true,
+        })
     }
 }
 </script>
@@ -143,10 +151,10 @@ const deleteProduct = (id) => {
                                 Editar
                             </Link>
                             <button 
-                                @click="deleteProduct(product.id)"
-                                class="text-red-600 hover:text-red-800"
+                                @click="toggleActive(product)"
+                                :class="product.is_active ? 'text-orange-600 hover:text-orange-800' : 'text-green-600 hover:text-green-800'"
                             >
-                                Eliminar
+                                {{ product.is_active ? 'Desactivar' : 'Activar' }}
                             </button>
                         </td>
                     </tr>

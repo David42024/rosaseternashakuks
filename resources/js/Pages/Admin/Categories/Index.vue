@@ -1,14 +1,41 @@
 <script setup>
 import { Link, router } from '@inertiajs/vue3'
+import { ref, watch } from 'vue'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 
-defineProps({
+const props = defineProps({
     categories: Object,
+    filters: Object,
 })
 
-const deleteCategory = (id) => {
-    if (confirm('¿Estás seguro de eliminar esta categoría?')) {
-        router.delete(`/admin/categories/${id}`)
+const search = ref(props.filters?.search || '')
+const statusFilter = ref(props.filters?.status || '')
+
+const applyFilters = () => {
+    router.get('/admin/categories', {
+        search: search.value || undefined,
+        status: statusFilter.value || undefined,
+    }, { preserveState: true, preserveScroll: true })
+}
+
+watch(statusFilter, applyFilters)
+
+let searchTimeout
+const onSearch = () => {
+    clearTimeout(searchTimeout)
+    searchTimeout = setTimeout(applyFilters, 300)
+}
+
+const toggleActive = (category) => {
+    const action = category.is_active ? 'desactivar' : 'activar'
+    if (confirm(`¿Estás seguro de ${action} "${category.name}"?`)) {
+        router.delete(`/admin/categories/${category.id}`, {
+            data: {
+                search: search.value || undefined,
+                status: statusFilter.value || undefined,
+            },
+            preserveScroll: true,
+        })
     }
 }
 </script>
@@ -25,6 +52,27 @@ const deleteCategory = (id) => {
             </Link>
         </div>
 
+        <!-- Filtros -->
+        <div class="bg-white rounded-xl shadow-sm p-4 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <input 
+                    v-model="search"
+                    @input="onSearch"
+                    type="text"
+                    placeholder="Buscar categorías..."
+                    class="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                >
+                <select 
+                    v-model="statusFilter"
+                    class="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                >
+                    <option value="">Todos los estados</option>
+                    <option value="active">Activas</option>
+                    <option value="inactive">Inactivas</option>
+                </select>
+            </div>
+        </div>
+
         <!-- Tabla -->
         <div class="bg-white rounded-xl shadow-sm overflow-hidden">
             <table class="w-full">
@@ -38,7 +86,7 @@ const deleteCategory = (id) => {
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
-                    <tr v-for="category in categories.data" :key="category.id">
+                    <tr v-for="category in categories.data" :key="category.id" :class="{ 'bg-gray-50 opacity-60': !category.is_active }">
                         <td class="px-6 py-4">
                             <img 
                                 v-if="category.image_url"
@@ -73,10 +121,10 @@ const deleteCategory = (id) => {
                                 Editar
                             </Link>
                             <button 
-                                @click="deleteCategory(category.id)"
-                                class="text-red-600 hover:text-red-800"
+                                @click="toggleActive(category)"
+                                :class="category.is_active ? 'text-orange-600 hover:text-orange-800' : 'text-green-600 hover:text-green-800'"
                             >
-                                Eliminar
+                                {{ category.is_active ? 'Desactivar' : 'Activar' }}
                             </button>
                         </td>
                     </tr>
@@ -96,9 +144,9 @@ const deleteCategory = (id) => {
             </div>
         </div>
 
+        <!-- Paginación -->
         <div v-if="categories.last_page > 1" class="mt-6 flex justify-center gap-2">
             <template v-for="link in categories.links" :key="link.label">
-
                 <Link
                     v-if="link.url"
                     :href="link.url"
@@ -109,15 +157,12 @@ const deleteCategory = (id) => {
                     v-html="link.label"
                     preserve-scroll
                 />
-
                 <span
                     v-else
                     class="px-4 py-2 rounded-lg bg-gray-100 text-gray-400 cursor-not-allowed"
                     v-html="link.label"
                 />
-
             </template>
         </div>
-
     </AdminLayout>
 </template>

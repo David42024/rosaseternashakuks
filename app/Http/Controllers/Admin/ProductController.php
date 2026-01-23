@@ -10,11 +10,17 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Cache;
 
 class ProductController extends Controller
 {
     public function index(Request $request)
     {
+
+        if (!$request->has('status')) {
+            return redirect()->route('admin.products.index', ['status' => 'active']);
+        }
+        
         $query = Product::with(['category', 'images']);
 
         // Filtros
@@ -119,30 +125,56 @@ class ProductController extends Controller
             'category_id' => 'required|exists:categories,id',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
-            'sale_price' => 'nullable|numeric|min:0|lt:price',
+            'sale_price' => 'nullable|numeric|min:0',
             'stock' => 'integer|min:0',
             'is_featured' => 'boolean',
             'is_active' => 'boolean',
+            'images' => 'nullable|array',
+            'images.*' => 'image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
         $product->update($validated);
+
+        // Subir nuevas imágenes si existen
+        if ($request->hasFile('images')) {
+            $baseName = Str::slug($product->name);
+            $existingCount = $product->images()->count();
+            
+            foreach ($request->file('images') as $index => $image) {
+                $fileName = $baseName . '-' . ($existingCount + $index + 1);
+                
+                // Subir a Cloudinary
+                $upload = (new \Cloudinary\Api\Upload\UploadApi())->upload($image->getRealPath(), [
+                    'public_id' => $fileName,
+                ]);
+                
+                $product->images()->create([
+                    'image_path' => $fileName,
+                    'is_primary' => $existingCount === 0 && $index === 0,
+                    'sort_order' => $existingCount + $index,
+                ]);
+            }
+        }
+
+        $this->clearCache();
 
         return redirect()->route('admin.products.index')
             ->with('success', 'Producto actualizado correctamente');
     }
 
-    public function destroy(Product $product)
+    public function destroy(Request $request, Product $product)
     {
-        // Eliminar imágenes
-        foreach ($product->images as $image) {
-            Storage::disk('public')->delete($image->image_path);
-        }
+        $product->update(['is_active' => !$product->is_active]);
 
-        $product->delete();
+        $status = $product->is_active ? 'activado' : 'desactivado';
 
-        return redirect()->route('admin.products.index')
-            ->with('success', 'Producto eliminado correctamente');
+        $this->clearCache();
+
+        // Mantener los filtros actuales
+        return redirect()->route('admin.products.index', $request->only(['search', 'category', 'status']))
+            ->with('success', "Producto {$status} correctamente");
     }
+
 
     public function uploadImage(Request $request, Product $product)
     {
@@ -150,12 +182,19 @@ class ProductController extends Controller
             'image' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
-        $path = $request->file('image')->store('products', 'public');
+        $baseName = Str::slug($product->name);
+        $existingCount = $product->images()->count();
+        $fileName = $baseName . '-' . ($existingCount + 1);
 
-        $image = $product->images()->create([
-            'image_path' => $path,
-            'is_primary' => $product->images()->count() === 0,
-            'sort_order' => $product->images()->count(),
+        // Subir a Cloudinary
+        $upload = (new \Cloudinary\Api\Upload\UploadApi())->upload($request->file('image')->getRealPath(), [
+            'public_id' => $fileName,
+        ]);
+
+        $product->images()->create([
+            'image_path' => $fileName,
+            'is_primary' => $existingCount === 0,
+            'sort_order' => $existingCount,
         ]);
 
         return back()->with('success', 'Imagen subida correctamente');
@@ -163,9 +202,42 @@ class ProductController extends Controller
 
     public function deleteImage(ProductImage $image)
     {
-        Storage::disk('public')->delete($image->image_path);
+        $productId = $image->product_id;
+        $wasPrimary = $image->is_primary;
+        
+        // Eliminar de Cloudinary (opcional)
+        try {
+            (new \Cloudinary\Api\Admin\AdminApi())->deleteAssets([$image->image_path]);
+        } catch (\Exception $e) {
+            // Continuar aunque falle
+        }
+        
         $image->delete();
+
+        // Si era la principal, asignar la siguiente como principal
+        if ($wasPrimary) {
+            $nextImage = ProductImage::where('product_id', $productId)
+                ->orderBy('sort_order')
+                ->first();
+                
+            if ($nextImage) {
+                $nextImage->update(['is_primary' => true]);
+            }
+        }
 
         return back()->with('success', 'Imagen eliminada');
     }
+
+    private function clearCache()
+    {
+        Cache::forget('featured_products');
+        Cache::forget('latest_products');
+        Cache::forget('categories');
+        Cache::forget('categories_with_count');
+        
+        for ($i = 1; $i <= 10; $i++) {
+            Cache::forget('catalog_products_page_' . $i);
+        }
+    }
+
 }

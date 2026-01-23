@@ -6,19 +6,33 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 
 class CategoryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $categories = Category::withCount('products')
-            ->latest()
-            ->paginate(10);
+        // Redirigir a status=active si no hay filtro
+        if (!$request->has('status')) {
+            return redirect()->route('admin.categories.index', ['status' => 'active']);
+        }
+
+        $query = Category::withCount('products');
+
+        if ($request->filled('search')) {
+            $query->where('name', 'like', '%' . $request->search . '%');
+        }
+
+        if ($request->filled('status')) {
+            $query->where('is_active', $request->status === 'active');
+        }
+
+        $categories = $query->latest()->paginate(10)->withQueryString();
 
         return Inertia::render('Admin/Categories/Index', [
             'categories' => $categories,
+            'filters' => $request->only(['search', 'status']),
         ]);
     }
 
@@ -38,11 +52,20 @@ class CategoryController extends Controller
 
         $validated['slug'] = Str::slug($validated['name']);
 
+        // Subir imagen a Cloudinary
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('categories', 'public');
+            $fileName = 'cat-' . Str::slug($validated['name']);
+            
+            $upload = (new \Cloudinary\Api\Upload\UploadApi())->upload($request->file('image')->getRealPath(), [
+                'public_id' => $fileName,
+            ]);
+            
+            $validated['image'] = $fileName;
         }
 
         Category::create($validated);
+
+        $this->clearCache();
 
         return redirect()->route('admin.categories.index')
             ->with('success', 'Categoría creada correctamente');
@@ -66,35 +89,56 @@ class CategoryController extends Controller
 
         $validated['slug'] = Str::slug($validated['name']);
 
+        // Subir nueva imagen a Cloudinary
         if ($request->hasFile('image')) {
-            // Eliminar imagen anterior
+            // Eliminar imagen anterior de Cloudinary
             if ($category->image) {
-                Storage::disk('public')->delete($category->image);
+                try {
+                    (new \Cloudinary\Api\Admin\AdminApi())->deleteAssets([$category->image]);
+                } catch (\Exception $e) {
+                    // Continuar aunque falle
+                }
             }
-            $validated['image'] = $request->file('image')->store('categories', 'public');
+            
+            $fileName = 'cat-' . Str::slug($validated['name']);
+            
+            $upload = (new \Cloudinary\Api\Upload\UploadApi())->upload($request->file('image')->getRealPath(), [
+                'public_id' => $fileName,
+            ]);
+            
+            $validated['image'] = $fileName;
         }
 
         $category->update($validated);
+
+        $this->clearCache();
 
         return redirect()->route('admin.categories.index')
             ->with('success', 'Categoría actualizada correctamente');
     }
 
-    public function destroy(Category $category)
+    public function destroy(Request $request, Category $category)
     {
-        // Verificar si tiene productos
-        if ($category->products()->count() > 0) {
-            return back()->with('error', 'No se puede eliminar una categoría con productos');
+        // Toggle activo/inactivo en lugar de eliminar
+        $category->update(['is_active' => !$category->is_active]);
+
+        $status = $category->is_active ? 'activada' : 'desactivada';
+
+        $this->clearCache();
+
+        return redirect()->route('admin.categories.index', $request->only(['search', 'status']))
+            ->with('success', "Categoría {$status} correctamente");
+    }
+
+    private function clearCache()
+    {
+        Cache::forget('featured_products');
+        Cache::forget('latest_products');
+        Cache::forget('categories');
+        Cache::forget('categories_with_count');
+        
+        for ($i = 1; $i <= 10; $i++) {
+            Cache::forget('catalog_products_page_' . $i);
         }
-
-        // Eliminar imagen
-        if ($category->image) {
-            Storage::disk('public')->delete($category->image);
-        }
-
-        $category->delete();
-
-        return redirect()->route('admin.categories.index')
-            ->with('success', 'Categoría eliminada correctamente');
     }
 }

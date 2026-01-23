@@ -1,8 +1,8 @@
 <script setup>
-import { Link } from '@inertiajs/vue3'
+import { Link, usePage } from '@inertiajs/vue3'
 import { useCartStore } from '@/stores/cartStore'
-import { useNotificationStore } from '@/stores/notificationStore' // Importar store de notificaciones
-import { onMounted } from 'vue'
+import { useNotificationStore } from '@/stores/notificationStore'
+import { onMounted, computed } from 'vue'
 
 defineProps({
     title: String
@@ -10,7 +10,8 @@ defineProps({
 
 const cartStore = useCartStore()
 const notificationStore = useNotificationStore() // Usar store de notificaciones
-
+const page = usePage()
+const user = computed(() => page.props.auth?.user || null)
 // Inicializar al montar
 onMounted(() => {
     cartStore.initialize()
@@ -67,8 +68,30 @@ onMounted(() => {
                     </div>
 
                     <div class="flex items-center gap-4">
-                        <Link href="/login" class="text-gray-700 hover:text-rose-700 transition text-sm font-semibold">Ingresar</Link>
-                        <Link href="/register" class="bg-gray-900 text-white px-6 py-2.5 rounded-full hover:bg-rose-600 transition text-sm font-medium shadow-lg">Registrarse</Link>
+                        <!-- Si NO hay usuario autenticado -->
+                        <template v-if="!user">
+                            <Link href="/login" class="text-gray-700 hover:text-rose-700 transition text-sm font-semibold">
+                                Ingresar
+                            </Link>
+                            <Link href="/register" class="bg-gray-900 text-white px-6 py-2.5 rounded-full hover:bg-rose-600 transition text-sm font-medium shadow-lg">
+                                Registrarse
+                            </Link>
+                        </template>
+
+                        <!-- Si SÍ hay usuario autenticado -->
+                        <template v-else>
+                            <span class="text-sm text-gray-700">
+                                Hola, {{ user.name }}
+                            </span>
+                            <Link
+                                href="/logout"
+                                method="post"
+                                as="button"
+                                class="text-gray-700 hover:text-rose-700 transition text-sm font-semibold"
+                            >
+                                Cerrar sesión
+                            </Link>
+                        </template>
                     </div>
                 </div>
             </div>

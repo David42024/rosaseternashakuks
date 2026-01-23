@@ -40,12 +40,14 @@ defineProps({
                         Ver Colección
                     </Link>
                     
-                    <Link 
-                        href="/contacto" 
-                        className="border-2 border-[#fdf2f2]/30 text-[#fdf2f2] px-10 py-4 rounded-full font-semibold hover:bg-[#fdf2f2]/10 transition-all duration-300 text-center backdrop-blur-sm"
-                    >
-                        Personalizar
-                    </Link>
+                    <!--
+<Link 
+    href="/contacto" 
+    class="border-2 border-[#fdf2f2]/30 text-[#fdf2f2] px-10 py-4 rounded-full font-semibold hover:bg-[#fdf2f2]/10 transition-all duration-300 text-center backdrop-blur-sm"
+>
+    Personalizar
+</Link>
+-->
                 </div>
             </div>
 

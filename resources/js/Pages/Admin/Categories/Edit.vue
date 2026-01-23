@@ -1,5 +1,5 @@
 <script setup>
-import { Link, useForm } from '@inertiajs/vue3'
+import { Link, useForm, router } from '@inertiajs/vue3'
 import { ref } from 'vue'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 
@@ -14,9 +14,9 @@ const form = useForm({
     is_active: props.category.is_active,
 })
 
-const imagePreview = ref(
-    props.category?.image ? props.category.image : null
-)
+// Usar image_url del accessor
+const imagePreview = ref(props.category.image_url || null)
+
 const handleImageChange = (e) => {
     const file = e.target.files[0]
     if (file) {
@@ -26,19 +26,30 @@ const handleImageChange = (e) => {
 }
 
 const submit = () => {
-    form.post(`/admin/categories/${props.category.id}`, {
-        _method: 'PUT',
-        forceFormData: true,
-    })
+    const formData = new FormData()
+    
+    formData.append('_method', 'PUT')
+    formData.append('name', form.name)
+    formData.append('description', form.description || '')
+    formData.append('is_active', form.is_active ? '1' : '0')
+    
+    if (form.image) {
+        formData.append('image', form.image)
+    }
+    
+    router.post(`/admin/categories/${props.category.id}`, formData)
 }
 </script>
 
 <template>
     <AdminLayout>
         <div class="max-w-2xl">
-            <h1 class="text-2xl font-bold text-gray-900 mb-6">
-                Editar Categoría
-            </h1>
+            <div class="mb-6">
+                <Link href="/admin/categories" class="text-pink-600 hover:text-pink-700 text-sm">
+                    ← Volver a categorías
+                </Link>
+                <h1 class="text-2xl font-bold text-gray-900 mt-2">Editar Categoría</h1>
+            </div>
 
             <form @submit.prevent="submit" class="bg-white rounded-xl shadow-sm p-6 space-y-6">
                 <!-- Nombre -->
@@ -78,11 +89,17 @@ const submit = () => {
                         <div v-if="imagePreview" class="w-24 h-24 rounded-lg overflow-hidden bg-gray-100">
                             <img :src="imagePreview" alt="Preview" class="w-full h-full object-cover">
                         </div>
-                        <input 
-                            type="file"
-                            accept="image/*"
-                            @change="handleImageChange"
-                        >
+                        <div v-else class="w-24 h-24 rounded-lg bg-gray-100 flex items-center justify-center">
+                            <span class="text-3xl">🌹</span>
+                        </div>
+                        <div>
+                            <input 
+                                type="file"
+                                accept="image/*"
+                                @change="handleImageChange"
+                            >
+                            <p class="text-xs text-gray-500 mt-1">JPG, PNG o WebP. Máx 2MB</p>
+                        </div>
                     </div>
                     <p v-if="form.errors.image" class="text-red-500 text-sm mt-1">
                         {{ form.errors.image }}
@@ -98,7 +115,7 @@ const submit = () => {
                         class="w-4 h-4 text-pink-600 rounded focus:ring-pink-500"
                     >
                     <label for="is_active" class="text-sm text-gray-700">
-                        Categoría activa
+                        Categoría activa (visible en tienda)
                     </label>
                 </div>
 

@@ -9,22 +9,32 @@ const props = defineProps({
     filters: Object,
 })
 
-const statusFilter = ref(props.filters?.status || '')
 const search = ref(props.filters?.search || '')
+const statusFilter = ref(props.filters?.status || '')
+const dateFrom = ref(props.filters?.date_from || '')
+const dateTo = ref(props.filters?.date_to || '')
 
 const applyFilters = () => {
     router.get('/admin/orders', {
-        status: statusFilter.value || undefined,
         search: search.value || undefined,
+        status: statusFilter.value || undefined,
+        date_from: dateFrom.value || undefined,
+        date_to: dateTo.value || undefined,
     }, { preserveState: true, preserveScroll: true })
 }
 
-watch(statusFilter, applyFilters)
+watch([statusFilter, dateFrom, dateTo], applyFilters)
 
 let searchTimeout
 const onSearch = () => {
     clearTimeout(searchTimeout)
     searchTimeout = setTimeout(applyFilters, 300)
+}
+
+const deleteOrder = (id) => {
+    if (confirm('¿Estás seguro de eliminar este pedido?')) {
+        router.delete(`/admin/orders/${id}`)
+    }
 }
 
 const statusColors = {
@@ -40,27 +50,45 @@ const statusColors = {
     <AdminLayout>
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold text-gray-900">Pedidos</h1>
+            <Link 
+                href="/admin/orders/create"
+                class="bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700 transition"
+            >
+                + Nuevo Pedido
+            </Link>
         </div>
 
         <!-- Filtros -->
         <div class="bg-white rounded-xl shadow-sm p-4 mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <input 
                     v-model="search"
                     @input="onSearch"
                     type="text"
-                    placeholder="Buscar por nombre, teléfono..."
-                    class="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-pink-500"
+                    placeholder="Buscar por cliente, teléfono..."
+                    class="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                 >
                 <select 
                     v-model="statusFilter"
-                    class="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-pink-500"
+                    class="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                 >
                     <option value="">Todos los estados</option>
                     <option v-for="(label, key) in statuses" :key="key" :value="key">
                         {{ label }}
                     </option>
                 </select>
+                <input 
+                    v-model="dateFrom"
+                    type="date"
+                    class="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                    placeholder="Desde"
+                >
+                <input 
+                    v-model="dateTo"
+                    type="date"
+                    class="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                    placeholder="Hasta"
+                >
             </div>
         </div>
 
@@ -78,39 +106,53 @@ const statusColors = {
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
-                    <tr v-for="order in orders.data" :key="order.id">
+                    <tr v-for="order in orders.data" :key="order.id" class="hover:bg-gray-50">
                         <td class="px-6 py-4">
-                            <span class="font-medium">#{{ order.id }}</span>
+                            <span class="font-medium text-pink-600">#{{ order.id }}</span>
                         </td>
                         <td class="px-6 py-4">
-                            <p class="font-medium text-gray-900">{{ order.customer_name }}</p>
-                            <p class="text-sm text-gray-500">{{ order.customer_phone }}</p>
+                            <div>
+                                <p class="font-medium text-gray-900">{{ order.customer_name }}</p>
+                                <p class="text-sm text-gray-500">{{ order.customer_phone }}</p>
+                            </div>
                         </td>
                         <td class="px-6 py-4">
-                            <span class="font-semibold text-gray-900">S/{{ order.total }}</span>
+                            <span class="font-bold text-gray-900">S/{{ parseFloat(order.total).toFixed(2) }}</span>
                         </td>
                         <td class="px-6 py-4">
                             <span :class="['px-2 py-1 text-xs rounded-full', statusColors[order.status]]">
-                                {{ order.status_label }}
+                                {{ statuses[order.status] }}
                             </span>
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-500">
                             {{ new Date(order.created_at).toLocaleDateString('es-PE') }}
                         </td>
-                        <td class="px-6 py-4 text-right">
+                        <td class="px-6 py-4 text-right space-x-2">
                             <Link 
                                 :href="`/admin/orders/${order.id}`"
+                                class="text-gray-600 hover:text-gray-800"
+                            >
+                                Ver
+                            </Link>
+                            <Link 
+                                :href="`/admin/orders/${order.id}/edit`"
                                 class="text-blue-600 hover:text-blue-800"
                             >
-                                Ver detalle
+                                Editar
                             </Link>
+                            <button 
+                                @click="deleteOrder(order.id)"
+                                class="text-red-600 hover:text-red-800"
+                            >
+                                Eliminar
+                            </button>
                         </td>
                     </tr>
                 </tbody>
             </table>
 
             <div v-if="orders.data.length === 0" class="text-center py-12">
-                <span class="text-4xl">📋</span>
+                <span class="text-4xl">📦</span>
                 <p class="text-gray-500 mt-4">No hay pedidos</p>
             </div>
         </div>

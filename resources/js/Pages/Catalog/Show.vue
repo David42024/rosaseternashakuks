@@ -169,10 +169,9 @@ onMounted(() => {
                             </span>
                         </div>
 
-                        <div v-if="product.description" class="prose prose-sm text-gray-500 leading-relaxed">
+                        <div v-if="product.description" class="prose prose-sm text-gray-500 leading-relaxed whitespace-pre-line">
                             {{ product.description }}
                         </div>
-
                         <div class="flex flex-col gap-2">
                             <div class="flex items-center gap-2">
                                 <div :class="['w-2 h-2 rounded-full', product.stock > 0 ? 'bg-green-500' : 'bg-red-500']"></div>
