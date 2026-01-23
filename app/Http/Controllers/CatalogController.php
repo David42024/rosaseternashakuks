@@ -17,12 +17,18 @@ class CatalogController extends Controller
             $products = $this->getFilteredProducts($request);
         } else {
             // Sin filtros, usar caché
-            $products = Cache::remember('catalog_products_page_' . $request->get('page', 1), 1800, function () {
-                return Product::with(['category', 'images'])
-                    ->active()
-                    ->latest()
-                    ->paginate(12);
+            $page = $request->get('page', 1);
+
+            $productIds = Cache::remember('catalog_product_ids', 1800, function () {
+                return Product::active()->latest()->pluck('id');
             });
+
+            $products = Product::with(['category', 'images'])
+                ->whereIn('id', $productIds)
+                ->latest()
+                ->paginate(12)
+                ->withQueryString();
+
         }
 
         $categories = Cache::remember('categories_with_count', 3600, function () {
