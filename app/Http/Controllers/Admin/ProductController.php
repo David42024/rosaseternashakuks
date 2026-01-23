@@ -70,10 +70,18 @@ class ProductController extends Controller
 
         // Subir imágenes
         if ($request->hasFile('images')) {
+            $baseName = Str::slug($product->name);
+            
             foreach ($request->file('images') as $index => $image) {
-                $path = $image->store('products', 'public');
+                $fileName = $baseName . '-' . ($index + 1);
+                
+                // Subir a Cloudinary
+                $upload = (new \Cloudinary\Api\Upload\UploadApi())->upload($image->getRealPath(), [
+                    'public_id' => $fileName,
+                ]);
+                
                 $product->images()->create([
-                    'image_path' => $path,
+                    'image_path' => $fileName,
                     'is_primary' => $index === 0,
                     'sort_order' => $index,
                 ]);

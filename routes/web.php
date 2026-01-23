@@ -10,6 +10,7 @@ use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Admin\UserController;
 
 
 #Route::get('/_debug/storage', function () {
@@ -86,4 +87,7 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     // Pedidos
     Route::resource('orders', OrderController::class)->only(['index', 'show', 'update', 'destroy']);
     Route::patch('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status');
+
+    //Users
+    Route::resource('users', UserController::class);
 });
