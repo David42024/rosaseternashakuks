@@ -1,9 +1,10 @@
-FROM php:8.4-apache
+# ============================================
+# ETAPA 1: Construcción de dependencias
+# ============================================
+FROM php:8.4-fpm AS base
 
-# ============================================
-# INSTALAR DEPENDENCIAS DEL SISTEMA
-# ============================================
-RUN apt-get update && apt-get install -y \
+# Instalar dependencias del sistema en una sola capa
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     libzip-dev \
     libpng-dev \
@@ -14,72 +15,56 @@ RUN apt-get update && apt-get install -y \
     git \
     curl \
     libonig-dev \
-    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) gd \
-    && docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath zip \
-    && a2enmod rewrite \
-    && rm -rf /var/lib/apt/lists/*
+    && docker-php-ext-install -j$(nproc) gd pdo pdo_pgsql mbstring exif pcntl bcmath zip \
+    && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# ============================================
-# INSTALAR COMPOSER
-# ============================================
+# Instalar Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-
-# ============================================
-# CONFIGURAR APACHE PARA LARAVEL
-# ============================================
-ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
-
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf \
-    && sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf \
-    && sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
 
 WORKDIR /var/www/html
 
 # ============================================
-# COPIAR ARCHIVOS BASE
+# ETAPA 2: Instalar dependencias PHP
 # ============================================
+FROM base AS dependencies
+
 COPY composer.json composer.lock* ./
-COPY .htaccess ./
-COPY .env.example .env
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
 
 # ============================================
-# INSTALAR DEPENDENCIAS PHP
+# ETAPA 3: Build del frontend (opcional)
 # ============================================
-RUN composer install --no-interaction --prefer-dist --optimize-autoloader || true
+FROM node:20-alpine AS frontend
 
-# ============================================
-# COPIAR EL RESTO DEL PROYECTO
-# ============================================
+WORKDIR /var/www/html
+COPY package*.json ./
+RUN npm ci --only=production && npm run build || true
+
 COPY . .
 
 # ============================================
-# INSTALAR FRONTEND
+# ETAPA 4: Imagen final mínima
 # ============================================
-RUN npm install && npm run build || true
+FROM base AS final
 
-# ============================================
-# PERMISOS LARAVEL
-# ============================================
-RUN mkdir -p storage/framework/sessions \
-    storage/framework/views \
-    storage/framework/cache \
-    storage/logs \
-    bootstrap/cache \
+# Copiar solo lo necesario de las etapas anteriores
+COPY --from=dependencies /var/www/html/vendor ./vendor
+COPY --from=frontend /var/www/html/public/build ./public/build
+
+# Copiar el código fuente (sin vendor ni node_modules)
+COPY . .
+
+# Crear directorios y permisos (sin chmod 777 por seguridad)
+RUN mkdir -p storage/framework/{sessions,views,cache} storage/logs bootstrap/cache \
     && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
-# ============================================
-# ENTRYPOINT
-# ============================================
+# Entrypoint para tareas de inicialización
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# ============================================
-# EXPONER PUERTO
-# ============================================
-EXPOSE 80
+USER www-data
+EXPOSE 9000
 
 CMD ["/entrypoint.sh"]

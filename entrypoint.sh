@@ -1,60 +1,27 @@
 #!/bin/bash
-
 set -e
 
-# ============================================
-# CONFIGURACIÓN APACHE (PUERTO 80)
-# ============================================
-PORT=${PORT:-80}
-echo "Listen $PORT" > /etc/apache2/ports.conf
-sed -i "s/<VirtualHost \*:80>/<VirtualHost *:$PORT>/g" /etc/apache2/sites-available/*.conf
-echo "ServerName localhost" >> /etc/apache2/apache2.conf
-
-# ============================================
-# PERMISOS LARAVEL
-# ============================================
-chown -R www-data:www-data /var/www/html
-chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
-
-# ============================================
-# CREAR SYMLINK STORAGE
-# ============================================
-php artisan storage:link || true
-
-# ============================================
-# ESPERAR A POSTGRESQL
-# ============================================
-if [ -n "$DB_HOST" ]; then
-    echo "Esperando conexión a PostgreSQL..."
-    until php -r "
-        try {
-            new PDO('pgsql:host=$DB_HOST;port=$DB_PORT;dbname=$DB_DATABASE', '$DB_USERNAME', '$DB_PASSWORD');
-            echo 'Conectado!';
-            exit(0);
-        } catch(Exception \$e) {
-            exit(1);
-        }
-    " 2>/dev/null; do
-        echo "Esperando PostgreSQL..."
-        sleep 2
+# Esperar a que la BD esté lista (si existe variable de conexión)
+if [ ! -z "$DB_HOST" ] && [ ! -z "$DB_PORT" ]; then
+    echo "🔄 Esperando a la base de datos..."
+    while ! nc -z "$DB_HOST" "$DB_PORT" 2>/dev/null; do
+        sleep 1
     done
 fi
 
-# ============================================
-# MIGRACIONES (PRODUCCIÓN)
-# ============================================
-if [ "$APP_ENV" = "production" ]; then
-    php artisan migrate --force || true
+# Generar .env si no existe (solo para desarrollo)
+if [ ! -f .env ] && [ -f .env.example ]; then
+    echo "⚠️  .env no encontrado, copiando desde .env.example"
+    cp .env.example .env
 fi
 
-# ============================================
-# OPTIMIZACIÓN LARAVEL
-# ============================================
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+# Ejecutar migraciones y optimizaciones (solo si APP_ENV != production)
+if [ "$APP_ENV" != "production" ]; then
+    php artisan migrate --force
+    php artisan config:cache
+    php artisan route:cache
+    php artisan view:cache
+fi
 
-# ============================================
-# INICIAR APACHE
-# ============================================
-exec apache2-foreground
+# Ejecutar PHP-FPM
+exec php-fpm
