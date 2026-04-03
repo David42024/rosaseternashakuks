@@ -6,6 +6,9 @@ FROM php:8.4-apache
 RUN apt-get update && apt-get install -y \
     libpq-dev \
     libzip-dev \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
     zip \
     unzip \
     git \
@@ -13,7 +16,9 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
-    && docker-php-ext-install pdo pdo_pgsql mysqli mbstring exif pcntl bcmath \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) gd \
+    && docker-php-ext-install pdo pdo_mysql mysqli mbstring exif pcntl bcmath zip \
     && a2enmod rewrite \
     && rm -rf /var/lib/apt/lists/*
 
@@ -33,65 +38,46 @@ RUN sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/Allo
 WORKDIR /var/www/html
 
 # ============================================
-# COPIAR ARCHIVOS DE CONFIGURACIÓN
+# COPIAR ARCHIVOS DE CONFIGURACIÓN PRIMERO
 # ============================================
-COPY .htaccess ./
 COPY composer.json composer.lock* ./
+COPY .htaccess ./
 
 # ============================================
-# CREAR .env MÍNIMO SI NO EXISTE
+# INSTALAR DEPENDENCIAS PHP
 # ============================================
-RUN if [ ! -f .env ]; then \
-    echo "APP_NAME=\"Rosas Eternas Hakuks\"" > .env && \
-    echo "APP_ENV=production" >> .env && \
-    echo "APP_KEY=" >> .env && \
-    echo "APP_DEBUG=false" >> .env && \
-    echo "APP_URL=https://rosaseternashakuks.onrender.com" >> .env && \
-    echo "LOG_CHANNEL=stack" >> .env && \
-    echo "DB_CONNECTION=sqlite" >> .env && \
-    echo "CACHE_DRIVER=file" >> .env && \
-    echo "SESSION_DRIVER=file" >> .env && \
-    echo "QUEUE_CONNECTION=sync" >> .env; \
-    fi
-
-# ============================================
-# INSTALAR DEPENDENCIAS PHP (SIN SCRIPTS)
-# ============================================
-RUN COMPOSER_DISABLE_EVENTS=1 composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-scripts
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 
 # ============================================
 # COPIAR EL RESTO DEL PROYECTO
 # ============================================
 COPY . .
-# ============================================
-# EJECUTAR package:discover MANUALMENTE
-# ============================================
-RUN php artisan package:discover --ansi || true
 
 # ============================================
-# INSTALAR DEPENDENCIAS NODE (CON ZIGGY)
+# INSTALAR DEPENDENCIAS NODE Y COMPILAR
 # ============================================
-RUN npm install && npm install ziggy && npm run build
+RUN npm install && npm run build || true
 
 # ============================================
-# CREAR DIRECTORIOS NECESARIOS
+# CREAR DIRECTORIOS Y CONFIGURAR PERMISOS
 # ============================================
 RUN mkdir -p storage/framework/sessions \
     storage/framework/views \
     storage/framework/cache \
     storage/logs \
     bootstrap/cache \
+    && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
 # ============================================
-# COPIAR Y CONFIGURAR ENTRYPOINT
+# COPIAR ENTRYPOINT
 # ============================================
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 # ============================================
-# EXPONER PUERTO
+# EXPONER PUERTO 80
 # ============================================
-EXPOSE 10000
+EXPOSE 80
 
 CMD ["/entrypoint.sh"]
