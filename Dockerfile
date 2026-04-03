@@ -3,32 +3,20 @@
 # ============================================
 FROM php:8.4-fpm AS base
 
-# Instalar dependencias del sistema esenciales
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libpq-dev \
-    libzip-dev \
-    libpng-dev \
-    libjpeg-dev \
-    libfreetype6-dev \
-    zip \
-    unzip \
-    git \
-    curl \
-    libonig-dev \
+    libpq-dev libzip-dev libpng-dev libjpeg-dev libfreetype6-dev \
+    zip unzip git curl libonig-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) gd pdo pdo_pgsql mbstring exif pcntl bcmath zip \
     && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Instalar Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-
 WORKDIR /var/www/html
 
 # ============================================
-# ETAPA 2: Dependencias PHP (Composer)
+# ETAPA 2: Dependencias PHP
 # ============================================
 FROM base AS dependencies
-
 COPY composer.json composer.lock* ./
 RUN composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
 
@@ -39,38 +27,43 @@ FROM node:20-alpine AS frontend
 
 WORKDIR /var/www/html
 
-# Copiar solo archivos de definición para aprovechar caché de Docker
+# 1. Copiar archivos de configuración de paquetes y herramientas
 COPY package*.json ./
 COPY vite.config.js ./ 
 COPY tailwind.config.js ./ 
 COPY postcss.config.js ./ 
 
-# ⚠️ IMPORTANTE: Usar 'npm install' o 'npm ci' SIN '--only=production'
-# Necesitamos devDependencies para compilar Vite/Tailwind
-RUN npm ci && npm run build
+# 2. Instalar dependencias (incluyendo devDependencies para Vite)
+# Usamos npm ci para ser estrictos con package-lock.json, pero si falla, fallback a install
+RUN npm ci || npm install
+
+# 3. Copiar SOLO los recursos necesarios para el build (JS/CSS)
+# Esto evita copiar todo el proyecto PHP a la imagen de Node
+COPY resources/ ./resources/
+
+# 4. Ejecutar el build
+# Si falla por falta de archivos, Vite lo dirá claramente ahora
+RUN npm run build
 
 # ============================================
-# ETAPA 4: Imagen Final (Producción)
+# ETAPA 4: Imagen Final
 # ============================================
 FROM base AS final
 
-# 1. Copiar vendor de PHP
+# Copiar vendor PHP
 COPY --from=dependencies /var/www/html/vendor ./vendor
 
-# 2. Estrategia segura para Assets:
-# Copiamos TODO el código fuente primero
+# Copiar TODO el código fuente del proyecto
 COPY . .
 
-# Luego, sobrescribimos la carpeta 'public' con la versión compilada de la etapa frontend
-# Esto asegura que tengamos index.php correcto + assets minificados
+# Sobrescribir la carpeta public con los assets compilados
 COPY --from=frontend /var/www/html/public ./public
 
-# 3. Permisos y estructura de directorios
+# Permisos
 RUN mkdir -p storage/framework/{sessions,views,cache} storage/logs bootstrap/cache \
-    && chown -R www-data:www-data storage bootstrap/cache public \
+    && chown -R www-www-data storage bootstrap/cache public \
     && chmod -R 775 storage bootstrap/cache public
 
-# 4. Entrypoint
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
