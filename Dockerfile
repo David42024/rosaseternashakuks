@@ -1,9 +1,9 @@
 # ============================================
-# ETAPA 1: Construcción de dependencias
+# ETAPA 1: Base PHP-FPM
 # ============================================
 FROM php:8.4-fpm AS base
 
-# Instalar dependencias del sistema en una sola capa
+# Instalar dependencias del sistema esenciales
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     libzip-dev \
@@ -25,7 +25,7 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 
 # ============================================
-# ETAPA 2: Instalar dependencias PHP
+# ETAPA 2: Dependencias PHP (Composer)
 # ============================================
 FROM base AS dependencies
 
@@ -33,34 +33,52 @@ COPY composer.json composer.lock* ./
 RUN composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
 
 # ============================================
-# ETAPA 3: Build del frontend (opcional)
+# ETAPA 3: Build Frontend (Node.js)
 # ============================================
 FROM node:20-alpine AS frontend
 
 WORKDIR /var/www/html
-COPY package*.json ./
-RUN npm ci --only=production && npm run build || true
 
-COPY . .
+# Copiar solo archivos de definición de paquetes para aprovechar caché
+COPY package*.json ./
+COPY vite.config.js ./ 
+COPY tailwind.config.js ./ 
+COPY postcss.config.js ./ 
+
+# Instalar dependencias y compilar assets
+# Nota: 'npm run build' genera archivos en public/assets y public/.vite
+RUN npm ci --only=production && npm run build
 
 # ============================================
-# ETAPA 4: Imagen final mínima
+# ETAPA 4: Imagen Final (Producción)
 # ============================================
 FROM base AS final
 
-# Copiar solo lo necesario de las etapas anteriores
+# 1. Copiar vendor de PHP
 COPY --from=dependencies /var/www/html/vendor ./vendor
-COPY --from=frontend /var/www/html/public/build ./public/build
 
-# Copiar el código fuente (sin vendor ni node_modules)
+# 2. Copiar assets compilados del frontend
+# Como las rutas de Vite pueden variar, copiamos todo lo generado en public/ desde la etapa frontend
+# EXCEPTO index.php y otros archivos fuente que se sobrescribirán con COPY . . después
+COPY --from=frontend /var/www/html/public ./public-temp
+
+# 3. Copiar TODO el código fuente del proyecto
+# Esto sobrescribe public-temp con los archivos fuente reales (index.php, etc.), 
+# pero mantendremos los assets compilados manualmente o dejaremos que el COPY . . los maneje si existen.
+# MEJOR ESTRATEGIA: Copiar el código fuente PRIMERO, luego sobreescribir solo los assets compilados.
 COPY . .
 
-# Crear directorios y permisos (sin chmod 777 por seguridad)
+# Sobrescribir la carpeta public con los assets compilados limpios de la etapa frontend
+# Eliminamos la carpeta public original (que tiene assets de dev o vacía) y movemos los compilados
+RUN rm -rf public \
+    && mv public-temp public
+
+# 4. Permisos y estructura de directorios
 RUN mkdir -p storage/framework/{sessions,views,cache} storage/logs bootstrap/cache \
-    && chown -R www-data:www-data storage bootstrap/cache \
+    && chown -R www-data:www-data storage bootstrap/cache public \
     && chmod -R 775 storage bootstrap/cache
 
-# Entrypoint para tareas de inicialización
+# 5. Entrypoint
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
