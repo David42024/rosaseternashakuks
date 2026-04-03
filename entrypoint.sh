@@ -1,46 +1,54 @@
 #!/bin/bash
 
+set -e
+
 # ============================================
-# CONFIGURACIÓN PARA DROPLET - PUERTO ESTÁNDAR
+# CONFIGURACIÓN APACHE (PUERTO 80)
 # ============================================
-# En droplet usamos puerto 80 estándar, no variable
 PORT=${PORT:-80}
 echo "Listen $PORT" > /etc/apache2/ports.conf
 sed -i "s/<VirtualHost \*:80>/<VirtualHost *:$PORT>/g" /etc/apache2/sites-available/*.conf
 echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
 # ============================================
-# CONFIGURAR PERMISOS CORRECTAMENTE
+# PERMISOS LARAVEL
 # ============================================
 chown -R www-data:www-data /var/www/html
-chmod -R 755 /var/www/html/storage /var/www/html/bootstrap/cache
-chmod -R 755 /var/www/html/public
+chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # ============================================
-# CREAR SYMLINK DE STORAGE
+# CREAR SYMLINK STORAGE
 # ============================================
 php artisan storage:link || true
 
 # ============================================
-# ESPERAR A QUE MYSQL ESTÉ LISTO (OPCIONAL)
+# ESPERAR A POSTGRESQL
 # ============================================
 if [ -n "$DB_HOST" ]; then
-    echo "Esperando conexión a MySQL..."
-    until php -r "try { new PDO('mysql:host=$DB_HOST;dbname=$DB_DATABASE', '$DB_USERNAME', '$DB_PASSWORD'); echo 'Conectado!'; exit(0); } catch(Exception \$e) { exit(1); }" 2>/dev/null; do
-        echo "Esperando MySQL..."
+    echo "Esperando conexión a PostgreSQL..."
+    until php -r "
+        try {
+            new PDO('pgsql:host=$DB_HOST;port=$DB_PORT;dbname=$DB_DATABASE', '$DB_USERNAME', '$DB_PASSWORD');
+            echo 'Conectado!';
+            exit(0);
+        } catch(Exception \$e) {
+            exit(1);
+        }
+    " 2>/dev/null; do
+        echo "Esperando PostgreSQL..."
         sleep 2
     done
 fi
 
 # ============================================
-# EJECUTAR MIGRACIONES (SOLO EN PRODUCCIÓN)
+# MIGRACIONES (PRODUCCIÓN)
 # ============================================
 if [ "$APP_ENV" = "production" ]; then
     php artisan migrate --force || true
 fi
 
 # ============================================
-# OPTIMIZACIONES PARA PRODUCCIÓN
+# OPTIMIZACIÓN LARAVEL
 # ============================================
 php artisan config:cache
 php artisan route:cache
