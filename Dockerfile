@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y \
     && apt-get install -y nodejs \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) gd \
-    && docker-php-ext-install pdo pdo_mysql mysqli mbstring exif pcntl bcmath zip \
+    && docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath zip \
     && a2enmod rewrite \
     && rm -rf /var/lib/apt/lists/*
 
@@ -31,22 +31,24 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 # CONFIGURAR APACHE PARA LARAVEL
 # ============================================
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
-RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
-RUN sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
+
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf \
+    && sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf \
+    && sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
 
 WORKDIR /var/www/html
 
 # ============================================
-# COPIAR ARCHIVOS DE CONFIGURACIÓN PRIMERO
+# COPIAR ARCHIVOS BASE
 # ============================================
 COPY composer.json composer.lock* ./
 COPY .htaccess ./
+COPY .env.example .env
 
 # ============================================
 # INSTALAR DEPENDENCIAS PHP
 # ============================================
-RUN composer install --no-interaction --prefer-dist --optimize-autoloader
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader || true
 
 # ============================================
 # COPIAR EL RESTO DEL PROYECTO
@@ -54,12 +56,12 @@ RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 COPY . .
 
 # ============================================
-# INSTALAR DEPENDENCIAS NODE Y COMPILAR
+# INSTALAR FRONTEND
 # ============================================
 RUN npm install && npm run build || true
 
 # ============================================
-# CREAR DIRECTORIOS Y CONFIGURAR PERMISOS
+# PERMISOS LARAVEL
 # ============================================
 RUN mkdir -p storage/framework/sessions \
     storage/framework/views \
@@ -70,13 +72,13 @@ RUN mkdir -p storage/framework/sessions \
     && chmod -R 775 storage bootstrap/cache
 
 # ============================================
-# COPIAR ENTRYPOINT
+# ENTRYPOINT
 # ============================================
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 # ============================================
-# EXPONER PUERTO 80
+# EXPONER PUERTO
 # ============================================
 EXPOSE 80
 
