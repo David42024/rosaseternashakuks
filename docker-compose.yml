@@ -3,9 +3,7 @@ version: '3.8'
 services:
   # PHP-FPM (tu aplicación Laravel)
   php:
-    build:
-      context: .
-      target: final
+    build: .
     env_file:
       - .env
     container_name: laravel_php
