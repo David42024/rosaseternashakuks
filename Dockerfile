@@ -2,16 +2,9 @@ FROM php:8.4-fpm
 
 # Instalar solo extensiones de sistema necesarias para PHP
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libpq-dev \
-    libzip-dev \
-    libpng-dev \
-    libjpeg-dev \
-    libfreetype6-dev \
-    zip \
-    unzip \
-    git \
-    curl \
-    libonig-dev \
+    libpq-dev libzip-dev libpng-dev libjpeg-dev libfreetype6-dev \
+    zip unzip git curl libonig-dev \
+    netcat-openbsd \ 
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) gd pdo pdo_pgsql mbstring exif pcntl bcmath zip \
     && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
