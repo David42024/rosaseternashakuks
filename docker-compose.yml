@@ -50,7 +50,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data  # ✅ Datos persistentes
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-laravel_user} -d ${POSTGRES_DB:-laravel_db}"]
       interval: 10s
       timeout: 5s
       retries: 5
