@@ -11,7 +11,7 @@ services:
     volumes:
       - ./:/var/www/html:cached      # Código fuente (cached para mejor rendimiento)
       - ./storage:/var/www/html/storage  # Persistencia de uploads/logs
-      - /var/www/certbot:/var/www/certbot
+      - /var/www/certbot:/var/www/certbot  # Volumen para Certbot (si usas HTTPS)
     environment:
       - APP_ENV=production
       - APP_DEBUG=false
